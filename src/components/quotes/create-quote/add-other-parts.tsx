@@ -5,7 +5,7 @@ const AddOtherParts = () => {
   return (
     <div className="m-auto my-10 flex flex-col items-center justify-center space-y-10">
       <img src={OrDividerImage} className="w-[180px]" />
-      <AddPartButton label="+ Add from your part library" takesTo="" />
+      <AddPartButton label="+ Add from your part library" takesTo="part-library" />
       <img src={OrDividerImage} className="w-[180px]" />
       <AddPartButton label="+ Add from parametric library" takesTo="parametric-library" />
     </div>

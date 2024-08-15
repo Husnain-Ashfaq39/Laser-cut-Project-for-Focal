@@ -38,8 +38,8 @@ export const fetchUserData = async (user: any, dispatch: any) => {
 };
 
 
-export const emailPasswordLogin = async () => {
-    // Login logic here
+export const handleSignup = async () => {
+    
 };
 
 export const googleAuth = async () => {

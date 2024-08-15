@@ -13,7 +13,7 @@ const QuoteHistory = () => {
             <h1 className="font-primary text-3xl">History</h1>
             <Button />
           </div>
-          <DataList />
+          <DataList Columns="history" />
         </main>
         <FooterAdmin />
       </div>

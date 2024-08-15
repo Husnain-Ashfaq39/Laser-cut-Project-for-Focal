@@ -20,6 +20,9 @@ import QuickPart from "@/pages/quotes/quick-part";
 import ParametricLibrary from "@/pages/quotes/parametric-library";
 import PartLibrary from "@/pages/part-library";
 import AddDetails from "@/pages/admin-pages/add-details";
+import CuttingTechs from "@/pages/admin-pages/cutting-techs";
+import CustomerList from "@/pages/admin-pages/customer-list";
+import ProfileDetails from "@/pages/profile-details";
 
 const quotesUrls = [
   {
@@ -54,7 +57,16 @@ const adminUrls=[
   {
     path: "admin/add-details",
     element: <AddDetails />,
-  }
+  },
+  {
+    path: "admin/add-cutting-techs",
+    element: <CuttingTechs />,
+  },
+  {
+    path: "admin/customer-list",
+    element: <CustomerList />,
+  },
+  
 
 
 ];
@@ -104,6 +116,10 @@ export const router = createBrowserRouter([
   {
     path: "/faq",
     element: <FAQ />,
+  },
+  {
+    path: "/profile-details",
+    element: <ProfileDetails />,
   },
   // quotes routes
   ...quotesUrls,

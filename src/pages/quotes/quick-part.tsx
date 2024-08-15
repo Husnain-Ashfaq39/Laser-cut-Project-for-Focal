@@ -55,7 +55,7 @@ const AddFromParametricLibrary: React.FunctionComponent = () => {
   );
 
   const [partName, setPartName] = React.useState<string>(shape?.name || "");
-  const [isPreview, setIsPreview] = React.useState(false);
+  
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -63,7 +63,7 @@ const AddFromParametricLibrary: React.FunctionComponent = () => {
       ...params,
       [name]: parseFloat(value),
     });
-    setIsPreview(false); // Switch off preview mode when parameters change
+     
   };
 
   const resolveDependencies = (
@@ -244,7 +244,7 @@ const AddFromParametricLibrary: React.FunctionComponent = () => {
                     <Button
                       variant="outline"
                       className="rounded-full font-bold"
-                      onClick={() => setIsPreview(true)}
+                      
                     >
                       View Preview
                     </Button>

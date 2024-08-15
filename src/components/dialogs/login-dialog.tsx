@@ -2,7 +2,6 @@ import { Button } from "@/components/_ui/button";
 import {
   Dialog,
   DialogContent,
-  DialogTitle,
   DialogTrigger,
 } from "@/components/_ui/dialog";
 import { Input } from "@/components/_ui/input";
@@ -36,7 +35,7 @@ interface LoginDialogProps {
 }
 
 export function LoginDialog({
-  navgateto=false,
+  navgateto = false,
   isDialogOpen,
   toggleDialog,
   toggleSignUpDialog,
@@ -50,17 +49,14 @@ export function LoginDialog({
     const checkUserStatus = async () => {
       auth.onAuthStateChanged((user) => {
         if (user && user.emailVerified) {
-          if(navgateto)
-          {
+          if (navgateto) {
             navigate("quotes/history");
           }
         }
       });
     };
-    if(navgateto)
-    {
+    if (navgateto) {
       checkUserStatus();
-
     }
   }, [navgateto]);
 
@@ -69,18 +65,23 @@ export function LoginDialog({
   const handlePasswordChange = (e: ChangeEvent<HTMLInputElement>) =>
     setPassword(e.target.value);
 
-  const navigate=useNavigate();
+  const navigate = useNavigate();
 
   const handleLogin = async () => {
     try {
-      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      const userCredential = await signInWithEmailAndPassword(
+        auth,
+        email,
+        password,
+      );
       const user = userCredential.user;
 
       if (!user.emailVerified) {
         toast({
           variant: "destructive",
           title: "Email not verified",
-          description: "Please verify your email before accessing your account.",
+          description:
+            "Please verify your email before accessing your account.",
           duration: 5000,
         });
         return;
@@ -90,18 +91,14 @@ export function LoginDialog({
         title: "Login Successful",
         description: "You have been logged in successfully.",
       });
-      
 
       toggleDialog(false);
       setEmail("");
       setPassword("");
       // window.location.reload(); // Refresh the window
-      if(navgateto)
-        {
-          navigate("/quotes/history")
-        }
-      
-
+      if (navgateto) {
+        navigate("/quotes/history");
+      }
     } catch (error: any) {
       const errorMessage = error.message;
       if (errorMessage === "Firebase: Error (auth/user-not-found).") {
@@ -113,7 +110,9 @@ export function LoginDialog({
           duration: 5000,
         });
         return;
-      } else if (errorMessage === "Firebase: Error (auth/invalid-credential).") {
+      } else if (
+        errorMessage === "Firebase: Error (auth/invalid-credential)."
+      ) {
         toast({
           variant: "destructive",
           title: "Invalid credentials",
@@ -159,11 +158,9 @@ export function LoginDialog({
         description: "Your account has been created successfully.",
       });
       // window.location.reload(); // Refresh the window
-      if(navgateto)
-        {
-          navigate("/quote/history")
-        }
-     
+      if (navgateto) {
+        navigate("/quote/history");
+      }
     } catch (error: any) {
       const errorMessage = error.message;
       toast({
@@ -177,15 +174,13 @@ export function LoginDialog({
   return (
     <>
       <Dialog open={isDialogOpen} onOpenChange={toggleDialog}>
-        <DialogTrigger>
-          {children}
-        </DialogTrigger>
+        <DialogTrigger>{children}</DialogTrigger>
         <DialogContent className="m-0 h-[100vh] overflow-y-auto p-0 lg:max-h-[80vh]">
           <div className="flex w-full flex-col items-center sm:flex-row">
-            <div className="bg-red relative hidden h-full w-full flex-shrink-0 sm:w-1/2 md:block">
+            <div className="hidden h-full w-full flex-shrink-0 sm:w-1/2 md:block">
               <img
                 src={DialogImage}
-                className="h-full w-full overflow-hidden rounded-l-3xl brightness-75"
+                className="w-full overflow-hidden rounded-l-3xl brightness-75 md:h-[80vh]"
                 alt="Dialog"
               />
               <div className="absolute inset-0 flex flex-col pl-8 pt-6">
@@ -203,11 +198,11 @@ export function LoginDialog({
                 </p>
               </div>
             </div>
-            <div className="m-auto flex w-full flex-col p-12 px-16 py-16">
-              <DialogTitle className="py-5 text-center font-cinzel text-2xl font-bold">
+            <div className="m-auto flex h-[80vh] w-[80%] flex-col justify-center px-12">
+              <h1 className="font-cinzel py-5 text-center text-2xl font-bold">
                 LOG IN
-              </DialogTitle>
-              <div className="grid gap-4">
+              </h1>
+              <div className="flex flex-col space-y-2 pt-6">
                 <div className="grid gap-2">
                   <Label htmlFor="email">Email Address</Label>
                   <Input
@@ -230,8 +225,6 @@ export function LoginDialog({
                     required
                   />
                 </div>
-              </div>
-              <div className="flex flex-col py-6">
                 <button
                   type="button"
                   className="w-full rounded-full bg-black px-4 py-2 font-secondary font-light text-white transition duration-200"

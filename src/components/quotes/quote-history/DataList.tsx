@@ -1,15 +1,21 @@
 import { columns } from "@/components/tables/columns";
+import { PartLibraryColumns } from "@/components/tables/part-library-columns";
 import { DataTable } from "@/components/tables/data-table";
-import {default as CreateNewQuoteButton} from "./create-quote-button";
+import { default as CreateNewQuoteButton } from "./create-quote-button";
 import { quotes } from "@/data/quotes/quotes";
 
-const DataList: React.FC = () => {
-  // const navigate = useNavigate();
+interface DataListProps {
+  Columns: "part" | "history";
+}
+
+const DataList: React.FC<DataListProps> = ({ Columns }) => {
+  const selectedColumns = Columns === "part" ? PartLibraryColumns : columns;
+
   return (
     <div className="mt-10 flex min-h-[650px] min-w-[500px] flex-col rounded-md border bg-white shadow-xl">
       {quotes.length > 0 ? (
         <div className="hidden h-full flex-1 flex-col space-y-8 p-8 md:flex">
-          <DataTable data={quotes} columns={columns} />
+          <DataTable data={quotes} columns={selectedColumns} />
         </div>
       ) : (
         <>
