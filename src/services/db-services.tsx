@@ -1,18 +1,10 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { getFirestore, collection, getDocs, where, query } from "firebase/firestore";
+import { getFirestore, collection, getDocs, doc, updateDoc, addDoc } from "firebase/firestore";
 
 // Initialize Firestore
 const db = getFirestore();
 
-// Define the structure of a User document
-interface User {
-  id: string;
-  firstName: string;
-  lastName: string;
-  email: string;
-  // Add more fields as necessary
-  [key: string]: any; // In case there are dynamic fields
-}
+
 export const fetchAllUsers = async () => {
   try {
     // Reference to the 'Users' collection
@@ -38,37 +30,32 @@ export const fetchAllUsers = async () => {
     throw new Error("Failed to fetch users");
   }
 };
+export const updateUserProfileImage = async (userId: string, downloadURL: string) => {
+  const userDocRef = doc(db, 'Users', userId);
+  await updateDoc(userDocRef, { profileImage: downloadURL });
+};
 
-export const fetchUserByEmail = async (collectionName: string, email: string): Promise<User | null> => {
+
+// Function to fetch documents from any Firestore collection
+export const fetchDocuments = async (collectionName: string) => {
   try {
-    // Reference to the specified collection
-    const usersCollection = collection(db, collectionName);
-
-    // Create a query to find the user with the matching email
-    const q = query(usersCollection, where("email", "==", email));
-
-    // Get the documents that match the query
-    const querySnapshot = await getDocs(q);
-
-    if (querySnapshot.empty) {
-      return null; // If no user is found
-    }
-
-    // Assuming there's only one user with that email, take the first result
-    const userDoc = querySnapshot.docs[0];
-
-    // Extract the document data
-    const userData = userDoc.data() as User;
-    const user: User = {
-      id: userDoc.id, // Document ID
-      name: `${userData.firstName} ${userData.lastName}`, // Combine firstName and lastName
-      email: userData.email, // User email
-      ...userData, // Spread the rest of the data if needed
-    };
-
-    return user; // Return the user data
+      const querySnapshot = await getDocs(collection(db, collectionName));
+      const docs = querySnapshot.docs.map(doc => doc.data());
+      return docs;
   } catch (error) {
-    console.error("Error fetching user by email: ", error);
-    throw new Error("Failed to fetch user by email");
+      console.error(`Error fetching documents from ${collectionName}:`, error);
+      throw new Error(`Failed to fetch documents from ${collectionName}`);
+  }
+};
+
+// Function to add a new document to any Firestore collection
+export const addDocument = async (collectionName: string, newDoc: object) => {
+  try {
+      const docRef = await addDoc(collection(db, collectionName), newDoc);
+      console.log('Document written with ID: ', docRef.id);
+      return docRef.id;
+  } catch (error) {
+      console.error(`Error adding new document to ${collectionName}:`, error);
+      throw new Error(`Failed to add document to ${collectionName}`);
   }
 };

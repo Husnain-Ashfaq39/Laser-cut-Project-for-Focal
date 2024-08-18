@@ -23,6 +23,7 @@ import AddDetails from "@/pages/admin-pages/add-details";
 import CuttingTechs from "@/pages/admin-pages/cutting-techs";
 import CustomerList from "@/pages/admin-pages/customer-list";
 import ProfileDetails from "@/pages/profile-details";
+import Material from "@/pages/admin-pages/material";
 
 const quotesUrls = [
   {
@@ -65,6 +66,10 @@ const adminUrls=[
   {
     path: "admin/customer-list",
     element: <CustomerList />,
+  },
+  {
+    path: "admin/material",
+    element: <Material />,
   },
   
 

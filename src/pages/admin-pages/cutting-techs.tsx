@@ -1,18 +1,30 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Modal from '@/components/cuting-techs/Modal';
 import { Button } from '@/components/_ui/button';
 import FooterAdmin from '@/components/footer/fouter-admin';
 import NavbarAdmin from '@/components/nav/navbar-admin';
+import { fetchDocuments } from '@/services/db-services'; // Import generic fetch function
 
 function CuttingTechs() {
     const [isModalOpen, setIsModalOpen] = useState(false);
-    const [cuttingTechs, setCuttingTechs] = useState([
-        {
-            name: 'Flat',
-            maxWidth: 2,
-            // Add other attributes as necessary
-        },
-    ]);
+    const [cuttingTechs, setCuttingTechs] = useState([]);
+
+    // Collection name for cutting technologies
+    const collectionName = 'CuttingTechs';
+
+    // Fetch cutting technologies from Firestore
+    useEffect(() => {
+        const getCuttingTechs = async () => {
+            try {
+                const techs = await fetchDocuments(collectionName);
+                setCuttingTechs(techs);
+            } catch (error) {
+                console.error('Error fetching cutting technologies:', error);
+            }
+        };
+
+        getCuttingTechs();
+    }, []);
 
     const handleOpenModal = () => {
         setIsModalOpen(true);
@@ -23,8 +35,8 @@ function CuttingTechs() {
     };
 
     const handleAddCuttingTech = (newTech) => {
+        // Add new tech to the local state for real-time UI update
         setCuttingTechs([...cuttingTechs, newTech]);
-        setIsModalOpen(false);
     };
 
     return (
@@ -54,7 +66,26 @@ function CuttingTechs() {
                                     <div className="text-black">Maximum sheet width (mm)</div>
                                     <div>{tech.maxWidth}</div>
                                 </div>
-                                {/* Other attributes */}
+                                <div className="mt-4 flex justify-between">
+                                    <div className="text-black">Maximum sheet length (mm)</div>
+                                    <div>{tech.maxLength}</div>
+                                </div>
+                                <div className="mt-4 flex justify-between">
+                                    <div className="text-black">Setup time (s)</div>
+                                    <div>{tech.setupTime}</div>
+                                </div>
+                                <div className="mt-4 flex justify-between">
+                                    <div className="text-black">Setup mode</div>
+                                    <div>{tech.setupMode}</div>
+                                </div>
+                                <div className="mt-4 flex justify-between">
+                                    <div className="text-black">Sheet change time (s)</div>
+                                    <div>{tech.sheetChangeTime}</div>
+                                </div>
+                                <div className="mt-4 flex justify-between">
+                                    <div className="text-black">Sheet change mode</div>
+                                    <div>{tech.sheetChangeMode}</div>
+                                </div>
                             </div>
                         </div>
                     ))}
@@ -66,9 +97,10 @@ function CuttingTechs() {
                 isOpen={isModalOpen} 
                 onClose={handleCloseModal}
                 onAdd={handleAddCuttingTech} 
+                collectionName={collectionName}  // Pass collection name to modal
             />
         </div>
-    )
+    );
 }
 
 export default CuttingTechs;
