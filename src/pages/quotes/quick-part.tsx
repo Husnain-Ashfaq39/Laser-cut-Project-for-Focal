@@ -55,7 +55,6 @@ const AddFromParametricLibrary: React.FunctionComponent = () => {
   );
 
   const [partName, setPartName] = React.useState<string>(shape?.name || "");
-  const [isPreview, setIsPreview] = React.useState(false);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -63,7 +62,17 @@ const AddFromParametricLibrary: React.FunctionComponent = () => {
       ...params,
       [name]: parseFloat(value),
     });
-    setIsPreview(false); // Switch off preview mode when parameters change
+  };
+
+  const resetMeasurements = () => {
+    const defaultParams = shape?.parameters.reduce(
+      (acc, param) => {
+        acc[param.shortName] = param.default;
+        return acc;
+      },
+      {} as { [key: string]: number },
+    );
+    setParams(defaultParams);
   };
 
   const resolveDependencies = (
@@ -203,6 +212,12 @@ const AddFromParametricLibrary: React.FunctionComponent = () => {
     }
   }, [params, shape]);
 
+  const navigateBack = () => {
+    navigate("/quotes/new-quote/parametric-library", {
+      state: { selectedCategory: location.state?.selectedCategory },
+    });
+  };
+
   return (
     <div className="flex min-h-screen w-full flex-col bg-gray-100 font-secondary">
       <NavbarAdmin />
@@ -215,10 +230,8 @@ const AddFromParametricLibrary: React.FunctionComponent = () => {
             <div className="w-full md:w-4/12">
               <div className="mb-6">
                 <Link
-                  to=""
-                  onClick={() =>
-                    navigate("/quotes/new-quote/parametric-library")
-                  }
+                  to="/quotes/new-quote/parametric-library"
+                  state={{ selectedCategory: location.state?.selectedCategory }}
                   className="flex items-center text-blue-600 hover:underline"
                 >
                   <svg
@@ -244,9 +257,8 @@ const AddFromParametricLibrary: React.FunctionComponent = () => {
                     <Button
                       variant="outline"
                       className="rounded-full font-bold"
-                      onClick={() => setIsPreview(true)}
                     >
-                      View Preview
+                      Preview
                     </Button>
                   </DialogTrigger>
                   <DialogContent>
@@ -288,6 +300,13 @@ const AddFromParametricLibrary: React.FunctionComponent = () => {
                     </div>
                   ))}
                 </div>
+                <Button
+                  variant="outline"
+                  className="mt-6 rounded-full font-bold"
+                  onClick={resetMeasurements}
+                >
+                  Reset Measurements
+                </Button>
               </div>
             </div>
             <div className="w-full md:w-8/12">
@@ -309,7 +328,7 @@ const AddFromParametricLibrary: React.FunctionComponent = () => {
               <Button
                 variant="outline"
                 className="rounded-full"
-                onClick={() => navigate("/quotes/new-quote/parametric-library")}
+                onClick={navigateBack}
               >
                 Cancel
               </Button>

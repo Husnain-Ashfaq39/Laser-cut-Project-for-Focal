@@ -14,6 +14,8 @@ export const taskSchema = z.object({
   bounds_wxl: z.string().optional(),
   material: z.string().optional(),
   image_url: z.string().optional(),
+  materialID: z.string().optional(),
+  cuttingID: z.string().optional(),
 })
 
 export type Task = z.infer<typeof taskSchema>

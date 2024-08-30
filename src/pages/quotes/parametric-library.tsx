@@ -1,5 +1,5 @@
 import * as React from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation, Link } from "react-router-dom";
 import svgs from "../../data/svgs.json";
 import {
   Select,
@@ -23,10 +23,13 @@ import FooterAdmin from "@/components/footer/fouter-admin";
 
 const ParametricLibrary: React.FunctionComponent = () => {
   const navigate = useNavigate();
+  const location = useLocation();
 
-  const [selectedCategory, setSelectedCategory] = React.useState(
-    svgs[0]?.mainCategory || "",
-  );
+  const initialCategory =
+    location.state?.selectedCategory || svgs[0]?.mainCategory || "";
+
+  const [selectedCategory, setSelectedCategory] =
+    React.useState(initialCategory);
   const [shapes, setShapes] = React.useState([]);
   const [currentPage, setCurrentPage] = React.useState(1);
   const shapesPerPage = 4;
@@ -47,7 +50,7 @@ const ParametricLibrary: React.FunctionComponent = () => {
   const handleShapeClick = (shape) => {
     const shapeNameInRoute = shape.name.toLowerCase().replace(/\s+/g, "-");
     navigate(`/quotes/new-quote/quick-part/${shapeNameInRoute}`, {
-      state: { shape },
+      state: { shape, selectedCategory },
     });
   };
 
@@ -64,6 +67,29 @@ const ParametricLibrary: React.FunctionComponent = () => {
         <section className="w-full max-w-7xl rounded-lg border border-gray-300 bg-white p-6">
           <div className="flex flex-col justify-between gap-4 md:flex-row md:items-start">
             <div className="mb-6 w-full md:mb-0 md:w-2/5">
+              <div className="mb-6">
+                <Link
+                  to="/quotes/new-quote"
+                  state={{ selectedCategory: location.state?.selectedCategory }}
+                  className="flex items-center text-blue-600 hover:underline"
+                >
+                  <svg
+                    className="mr-2 h-4 w-4"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    viewBox="0 0 24 24"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M15 19l-7-7 7-7"
+                    />
+                  </svg>
+                  Go back to Creating New Quote
+                </Link>
+              </div>
               <b className="mb-4 block font-semibold">Please Select Category</b>
               <Select
                 onValueChange={handleCategoryChange}

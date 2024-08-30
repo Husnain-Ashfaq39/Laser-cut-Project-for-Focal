@@ -1,8 +1,8 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { Button } from "@/components/_ui/button";
 import {
   Dialog,
   DialogContent,
-  DialogTitle,
   DialogTrigger,
 } from "@/components/_ui/dialog";
 import { Input } from "@/components/_ui/input";
@@ -15,7 +15,7 @@ import FocalLogo from "@/assets/focal-logo-2.png";
 // Firebase imports
 import { auth, db, googleProvider } from "@/firebase.config";
 import {
-  sendEmailVerification,
+
   signInWithEmailAndPassword,
   signInWithPopup,
 } from "firebase/auth";
@@ -23,9 +23,11 @@ import {
 // Toast imports
 import { useToast } from "@/components/_ui/toast/use-toast";
 import { ToastAction } from "@/components/_ui/toast/toast";
-import { doc, setDoc } from "firebase/firestore";
+
 
 import { useNavigate } from "react-router-dom";
+import { doc, getDoc } from "firebase/firestore";
+
 
 interface LoginDialogProps {
   navgateto?: boolean;
@@ -87,6 +89,20 @@ export function LoginDialog({
         });
         return;
       }
+      // Check if the user exists in the Firestore Users collection
+      const userRef = doc(db, "Users", user.uid); // Reference to the user's document
+      const userSnap = await getDoc(userRef);
+
+      if (!userSnap.exists()) {
+        toast({
+          variant: "destructive",
+          title: "User not found",
+          description: "The user does not exist in the database.",
+          duration: 5000,
+        });
+        return;
+      }
+
 
       toast({
         title: "Login Successful",
@@ -138,25 +154,33 @@ export function LoginDialog({
       const userCredential = await signInWithPopup(auth, googleProvider);
       const user = userCredential.user;
       console.log("user after google auth", user);
-      if (user) {
-        try {
-          const displayName = user?.displayName || "";
-          const [firstName, lastName] = displayName.split(" ");
-          await setDoc(doc(db, "Users", user.uid), {
-            email: user.email,
-            firstName: firstName || "",
-            lastName: lastName || "",
-            company: "",
-          });
-          await sendEmailVerification(user);
-        } catch (error: any) {
-          console.error("Error adding document: ", error);
-        }
+      if (!user.emailVerified) {
+        toast({
+          variant: "destructive",
+          title: "Email not verified",
+          description:
+            "Please verify your email before accessing your account.",
+          duration: 5000,
+        });
+        return;
+      }
+      // Check if the user exists in the Firestore Users collection
+      const userRef = doc(db, "Users", user.uid); // Reference to the user's document
+      const userSnap = await getDoc(userRef);
+
+      if (!userSnap.exists()) {
+        toast({
+          variant: "destructive",
+          title: "User not found",
+          description: "The user does not exist in the database.",
+          duration: 5000,
+        });
+        return;
       }
       toggleDialog(false);
       toast({
-        title: "Registration Successful",
-        description: "Your account has been created successfully.",
+        title: "Login Successful",
+        description: "You have been logged in successfully.",
       });
       // window.location.reload(); // Refresh the window
       if (navgateto) {
@@ -176,7 +200,7 @@ export function LoginDialog({
     <>
       <Dialog open={isDialogOpen} onOpenChange={toggleDialog}>
         <DialogTrigger>{children}</DialogTrigger>
-        <DialogContent className="m-0 h-[100vh] overflow-y-auto p-0 lg:max-h-[80vh]">
+        <DialogContent className="m-0  h-[100vh] overflow-y-auto p-0 lg:max-h-[80vh]">
           <div className="flex w-full flex-col items-center sm:flex-row">
             <div className="hidden h-full w-full flex-shrink-0 sm:w-1/2 md:block">
               <img
@@ -184,7 +208,7 @@ export function LoginDialog({
                 className="w-full overflow-hidden rounded-l-3xl brightness-75 md:h-[80vh]"
                 alt="Dialog"
               />
-              <div className="absolute inset-0 flex flex-col pl-8 pt-6">
+              <div className="absolute inset-0 w-56 flex flex-col pl-8 pt-6">
                 <img
                   src={FocalLogo}
                   className="left-0 top-0 m-5 w-[100px] rounded-lg"

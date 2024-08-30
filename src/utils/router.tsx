@@ -21,6 +21,10 @@ import ParametricLibrary from "@/pages/quotes/parametric-library";
 import PartLibrary from "@/pages/part-library";
 import AddDetails from "@/pages/admin-pages/add-details";
 import CuttingTechs from "@/pages/admin-pages/cutting-techs";
+import CustomerList from "@/pages/admin-pages/customer-list";
+import ProfileDetails from "@/pages/profile-details";
+import Material from "@/pages/admin-pages/material";
+import RateTable from "@/pages/admin-pages/rate-table";
 
 const quotesUrls = [
   {
@@ -59,7 +63,20 @@ const adminUrls=[
   {
     path: "admin/add-cutting-techs",
     element: <CuttingTechs />,
-  }
+  },
+  {
+    path: "admin/customer-list",
+    element: <CustomerList />,
+  },
+  {
+    path: "admin/material",
+    element: <Material />,
+  },
+  {
+    path: "admin/rate-table",
+    element: <RateTable />,
+  },
+  
 
 
 ];
@@ -109,6 +126,10 @@ export const router = createBrowserRouter([
   {
     path: "/faq",
     element: <FAQ />,
+  },
+  {
+    path: "/profile-details",
+    element: <ProfileDetails />,
   },
   // quotes routes
   ...quotesUrls,
