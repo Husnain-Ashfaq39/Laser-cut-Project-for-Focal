@@ -45,7 +45,7 @@ const CreateNewQuoteSteper = ({ currentStep, admin = false }: CreateNewQuoteStep
   }));
 
   return (
-    <div className="m-auto my-10 h-[100px] rounded-t-2xl border-[1px] border-blue-100 bg-white hidden sm:block">
+    <div className="m-auto my-10 h-[100px] rounded-t-2xl border-[1px] border-blue-100 bg-white">
       <div className="flex h-full flex-row divide-x-[1px]">
         {updatedSteps.map((step) => (
           <div

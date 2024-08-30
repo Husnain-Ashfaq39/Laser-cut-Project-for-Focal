@@ -1,9 +1,9 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { Button } from "@/components/_ui/button";
 import {
   Dialog,
   DialogContent,
-
+  DialogHeader,
+  DialogTitle,
   DialogTrigger,
 } from "@/components/_ui/dialog";
 import { Input } from "@/components/_ui/input";
@@ -69,7 +69,6 @@ export function SignUpDialog({
           firstName: firstName || "",
           lastName: lastName || "",
           company: "",
-          profileImage: ""
         });
         await sendEmailVerification(user);
         toast({
@@ -123,9 +122,7 @@ export function SignUpDialog({
             firstName: firstName || "",
             lastName: lastName || "",
             company: "",
-            profileImage: ""
           });
-          await sendEmailVerification(user);
           toast({
             title: "Verification Email Sent",
             description:
@@ -228,25 +225,25 @@ export function SignUpDialog({
                   required
                 />
               </div>
-              <button
-                type="button"
-                className="secondary w-full rounded-full bg-black px-4 py-2 font-light text-white transition duration-200"
-                onClick={handleSignUp}
-              >
-                Sign Up
-              </button>
-              <div className="mt-4 text-center text-sm">
-                Already have an account?{" "}
                 <button
-                  className="underline"
-                  onClick={() => {
-                    toggleDialog(false);
-                    toggleLoginDialog(true);
-                  }}
+                  type="button"
+                  className="secondary w-full rounded-full bg-black px-4 py-2 font-light text-white transition duration-200"
+                  onClick={handleSignUp}
                 >
-                  Log in
+                  Sign Up
                 </button>
-              </div>
+                <div className="mt-4 text-center text-sm">
+                  Already have an account?{" "}
+                  <button
+                    className="underline"
+                    onClick={() => {
+                      toggleDialog(false);
+                      toggleLoginDialog(true);
+                    }}
+                  >
+                    Log in
+                  </button>
+                </div>
             </div>
           </div>
         </DialogContent>

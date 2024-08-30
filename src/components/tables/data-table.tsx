@@ -28,15 +28,12 @@ import { DataTableToolbar } from "./data-table-toolbar";
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  data: any;
-  toolbar?:boolean;
+  data: TData[];
 }
 
 export function DataTable<TData, TValue>({
   columns,
   data,
-  toolbar=false
 }: DataTableProps<TData, TValue>) {
   const [rowSelection, setRowSelection] = React.useState({});
   const [columnVisibility, setColumnVisibility] =
@@ -70,7 +67,7 @@ export function DataTable<TData, TValue>({
 
   return (
     <div className="space-y-4 object-contain bg-white">
-      {toolbar && <DataTableToolbar table={table} />}
+      <DataTableToolbar table={table} />
       <div className="rounded-md border">
         <Table>
           <TableHeader>
