@@ -8,7 +8,6 @@ import cutting from '@/assets/icons/cutting.svg';
 import material from '@/assets/icons/material.svg';
 import customers from '@/assets/icons/customers.svg';
 import qoute from '@/assets/icons/qoute.svg';
-import ratesvg from '@/assets/icons/rate.svg';
 import { useNavigate } from "react-router-dom";
 import { getAuth, signOut } from "firebase/auth";
 import { clearUser } from "@/redux/slices/auth-slice";
@@ -111,18 +110,6 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, toggleSidebar }) => {
                             >
                                 <img src={material} alt="" />
                                 Materials
-                            </a>
-                        </li>
-                        <li onClick={(e) => {
-                                e.preventDefault(); 
-                                navigate("/admin/rate-table", { replace: true }); 
-                            }}>
-                            <a
-                                className="flex items-center gap-x-3.5 py-2 px-2.5 bg-gray-100 text-sm text-gray-700 rounded-lg hover:bg-gray-100"
-                                href="#"
-                            >
-                                <img src={ratesvg} alt="" />
-                                Rate Table
                             </a>
                         </li>
                         <li onClick={(e) => {

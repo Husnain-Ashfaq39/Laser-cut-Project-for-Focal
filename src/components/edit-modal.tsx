@@ -1,50 +1,30 @@
 import React, { useState, useEffect } from 'react';
 import { Dialog } from "@radix-ui/react-dialog";
-import { DialogContent, DialogHeader, DialogTitle } from "./_ui/dialog";
+import { DialogContent, DialogDescription, DialogHeader, DialogTitle } from "./_ui/dialog";
 import { Button } from '@/components/_ui/button';
-import { Select, SelectContent, SelectGroup, SelectTrigger, SelectValue, SelectItem } from '@/components/_ui/select';
 
-function EditModal({ isOpen, onClose, data, onSave, fieldsToShow = null, isRateTable = false, material = null }) {
-  const [formValues, setFormValues] = useState({});
-  const [Thickness, setThickness] = useState("");
-  const [allThicknesses, setAllThicknesses] = useState([]);
-
-  useEffect(() => {
-    if (material) {
-      const thicknesses = material?.sheets?.map(sheet => sheet?.thickness);
-      setAllThicknesses(thicknesses);
-    }
-  }, [material]);
+function EditModal({ isOpen, onClose, rateTablesetting, onSave }) {
+  const [name, setName] = useState(rateTablesetting?.name || '');
+  const [baseHourlyRateMarkup, setBaseHourlyRateMarkup] = useState(rateTablesetting?.baseHourlyRateMarkup || 0);
+  const [etchingFeedRate, setEtchingFeedRate] = useState(rateTablesetting?.etchingFeedRate || 0);
 
   useEffect(() => {
-    if (isOpen) {
-      console.log("Data:", data); // Check if the expected fields exist
-      setFormValues(data);
-      if (isRateTable && data?.thickness) {
-        setThickness(data.thickness);
-      } else {
-        setThickness(""); // Reset thickness if not provided
-      }
+    if (!isOpen) {
+      // Reset state when modal is closed
+      setName(rateTablesetting?.name || '');
+      setBaseHourlyRateMarkup(rateTablesetting?.baseHourlyRateMarkup || 0);
+      setEtchingFeedRate(rateTablesetting?.etchingFeedRate || 0);
     }
-  }, [isOpen, data, isRateTable]);
-
-
-  const handleInputChange = (key, value) => {
-    setFormValues((prevValues) => ({
-      ...prevValues,
-      [key]: value,
-    }));
-  };
+  }, [isOpen, rateTablesetting]);
 
   const handleSave = () => {
-    const updatedData = fieldsToShow.reduce((acc, key) => {
-      acc[key] = formValues[key] || ''; // Make sure the field is included even if empty
-      return acc;
-    }, {});
-    if (isRateTable) {
-      updatedData.thickness = Thickness; // Include thickness if rate table
-    }
-    onSave(data, updatedData);
+    const updatedRateTable = {
+      ...rateTablesetting,
+      name,
+      baseHourlyRateMarkup,
+      etchingFeedRate,
+    };
+    onSave(updatedRateTable);
     onClose();
   };
 
@@ -55,41 +35,38 @@ function EditModal({ isOpen, onClose, data, onSave, fieldsToShow = null, isRateT
       <DialogContent className="max-w-lg w-full p-6 bg-white rounded-lg shadow-lg">
         <DialogHeader>
           <DialogTitle className="text-lg font-semibold">Edit RateTable Settings</DialogTitle>
+          <DialogDescription className="text-sm text-gray-500"></DialogDescription>
         </DialogHeader>
         <div className="mt-4 space-y-4">
-          {isRateTable && (
-            <Select
-              value={Thickness}
-              onValueChange={(value) => setThickness(value)}
-            >
-              <SelectTrigger className="w-full font-medium">
-                <SelectValue placeholder="Select Thickness" />
-              </SelectTrigger>
-              <SelectContent className="font-secondary font-medium">
-                <SelectGroup>
-                  {allThicknesses?.map((thickness, index) => (
-                    <SelectItem key={index} value={thickness}>
-                      {thickness}
-                    </SelectItem>
-                  ))}
-                </SelectGroup>
-              </SelectContent>
-            </Select>
-          )}
-          {fieldsToShow.map((key) => (
-            <div key={key}>
-              <label className="block text-sm font-medium text-gray-700">
-                {key.replace(/([A-Z])/g, ' $1').trim()}
-              </label>
+          <div>
+            <label className="block text-sm font-medium text-gray-700">Name</label>
+            <input
+              type="text"
+              className="w-full p-2 border rounded"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+            />
+          </div>
 
-              <input
-                type={typeof formValues[key] === 'number' ? 'number' : 'text'}
-                className="w-full p-2 border rounded"
-                value={formValues[key] || "null"}  // Use empty string if value is undefined
-                onChange={(e) => handleInputChange(key, e.target.value)}
-              />
-            </div>
-          ))}
+          <div>
+            <label className="block text-sm font-medium text-gray-700">Base Hourly Rate Markup</label>
+            <input
+              type="number"
+              className="w-full p-2 border rounded"
+              value={baseHourlyRateMarkup}
+              onChange={(e) => setBaseHourlyRateMarkup(e.target.value)}
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700">Etching Feed Rate</label>
+            <input
+              type="number"
+              className="w-full p-2 border rounded"
+              value={etchingFeedRate}
+              onChange={(e) => setEtchingFeedRate(e.target.value)}
+            />
+          </div>
 
           <div className="flex justify-end space-x-4">
             <Button variant="outline" onClick={onClose}>
@@ -104,6 +81,5 @@ function EditModal({ isOpen, onClose, data, onSave, fieldsToShow = null, isRateT
     </Dialog>
   );
 }
-
 
 export default EditModal;

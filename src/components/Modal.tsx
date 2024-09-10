@@ -3,57 +3,32 @@ import { DialogContent, DialogDescription, DialogHeader, DialogTitle } from "./_
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/_ui/button';
 import { addDocument, addItemToArrayField } from '@/services/db-services';
-import { Select, SelectContent, SelectGroup, SelectTrigger, SelectValue, SelectItem } from '@/components/_ui/select';
 
-function Modal({ isOpen, onClose, onAdd, collectionName, inputFields, initialValues, updateDoc = false, docID = null, arrayFieldName = null, isTableData = false,selectedMaterial = null } ) {
+function Modal({ isOpen, onClose, onAdd, collectionName, inputFields, initialValues, updateDoc=false, docID=null ,arrayFieldName=null}) {
   const [newItem, setNewItem] = useState(initialValues);
-  const [Thickness, setThickness] = useState("");
-  const [allThicknesses, setAllThicknesses] = useState([]);
 
   useEffect(() => {
-    if (selectedMaterial) {
-      // Extract all thicknesses from the selectedMaterial's sheets array
-      const thicknesses = selectedMaterial?.sheets?.map(sheet => sheet.thickness);
-      setAllThicknesses(thicknesses);
-    }
-  }, [selectedMaterial]);
-
-  useEffect(() => {
-    if (!isOpen) {
-      setNewItem(initialValues);
-      setThickness(""); // Reset thickness on close
-    }
-    if (isTableData) {
-      delete initialValues.thickness;
-     
-    }
+    if (!isOpen) setNewItem(initialValues);
   }, [isOpen]);
 
   const handleChange = ({ target: { name, value } }) => setNewItem(prev => ({ ...prev, [name]: value }));
 
   const handleSubmit = async () => {
     try {
-      let itemWithThickness = { ...newItem };
-      
-      if (isTableData) {
-        itemWithThickness = { ...itemWithThickness, thickness: Thickness };
-      }
-      
       if (updateDoc && docID) {
-        await addItemToArrayField(collectionName, docID, arrayFieldName, itemWithThickness);
+        // Add the new sheet to the selected material's sheets array
+        await addItemToArrayField(collectionName,docID,arrayFieldName,newItem)
       } else {
-        await addDocument(collectionName, itemWithThickness);
+        // Add a new material document
+        await addDocument(collectionName, newItem);
       }
-
-      onAdd(itemWithThickness);
+      onAdd(newItem);
       setNewItem(initialValues);
-      setThickness(""); // Reset after submit
       onClose();
     } catch (e) {
       console.error('Error adding document: ', e);
     }
-};
-
+  };
 
   if (!isOpen) return null;
 
@@ -61,32 +36,11 @@ function Modal({ isOpen, onClose, onAdd, collectionName, inputFields, initialVal
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-lg w-full p-6 bg-white rounded-lg shadow-lg">
         <DialogHeader>
-          <DialogTitle className="text-lg font-semibold">{updateDoc ? "Enter Data" : "Add Material"}</DialogTitle>
+          <DialogTitle className="text-lg font-semibold">{updateDoc ? "Add Sheet" : "Add Material"}</DialogTitle>
           <DialogDescription className="text-sm text-gray-500"></DialogDescription>
         </DialogHeader>
-
-        {isTableData && <Select
-          value={Thickness}
-          onValueChange={(value) => {
-            setThickness(value);
-          }}>
-          <SelectTrigger className="w-full font-medium">
-            <SelectValue placeholder="Select Thickness" />
-          </SelectTrigger>
-          <SelectContent className="font-secondary font-medium">
-            <SelectGroup>
-              {allThicknesses?.map((thickness, index) => (
-                <SelectItem key={index} value={thickness}>
-                  {thickness}
-                </SelectItem>
-              ))}
-            </SelectGroup>
-          </SelectContent>
-        </Select>}
-
         <div className="mt-4 space-y-4">
           {inputFields.map(({ name, type, placeholder }) => (
-            (name!="thickness" || !isTableData)&& 
             <input
               key={name}
               type={type}
