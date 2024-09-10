@@ -41,7 +41,8 @@ export const fetchUserData = async (user: any, dispatch: any) => {
         firstName: userFromDb.data().firstName,
         lastName: userFromDb.data().lastName,
         email: userFromDb.data().email,
-        profileImage:userFromDb.data().profileImage
+        profileImage:userFromDb.data().profileImage,
+        creditAccount:userFromDb.data().creditAccount
       })
     );
   } else {

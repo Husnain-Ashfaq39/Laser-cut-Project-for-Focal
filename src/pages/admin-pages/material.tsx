@@ -4,18 +4,25 @@ import { Search } from '@/components/_ui/search';
 import { Button } from '@/components/_ui/button';
 import { useEffect, useState } from 'react';
 import Modal from '@/components/Modal';
-import { deleteDocument, fetchDocuments } from '@/services/db-services';
+import { deleteDocument, deleteDocumentsByMaterialId, fetchDocuments } from '@/services/db-services';
 import { DataTable } from '@/components/tables/data-table';
 import { SheetsColumn } from '@/components/tables/sheets-column';
+import deletesvg from '@/assets/icons/delete.svg'
+import PreLoader from '@/components/pre-loader';
+import { useNavigate } from 'react-router-dom';
+
 
 function Materials() {
+  const navigate = useNavigate();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isSheetModalOpen, setIsSheetModalOpen] = useState(false);
   const [selectedMaterial, setSelectedMaterial] = useState(null);
   const [materials, setMaterials] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
-  const [loadingMaterials, setLoadingMaterials] = useState(true);
+  const [cuttingTechs, setCuttingTechs] = useState([]);
+
   const [errorMaterials, setErrorMaterials] = useState(null);
+  const [loading, setLoading] = useState(true);
 
   const initialMaterialState = {
     name: '',
@@ -48,25 +55,38 @@ function Materials() {
   ];
 
   // Fetch Materials
+  const getMaterials = async () => {
+    try {
+      const fetchedMaterials = await fetchDocuments('Materials');
+      setMaterials(fetchedMaterials);
+      setLoading(false);
+    } catch (error) {
+      console.error('Error fetching Materials:', error);
+      setErrorMaterials('Failed to fetch Materials');
+    }
+  };
+
   useEffect(() => {
-    const getMaterials = async () => {
+    getMaterials();
+
+    const getCuttingTechs = async () => {
       try {
-        const fetchedMaterials = await fetchDocuments('Materials');
-        setMaterials(fetchedMaterials);
-        setLoadingMaterials(false);
+        const fetchedCuttingTechs = await fetchDocuments('CuttingTechs');
+        setCuttingTechs(fetchedCuttingTechs);
+        setLoading(false);
       } catch (error) {
-        console.error('Error fetching Materials:', error);
-        setErrorMaterials('Failed to fetch Materials');
-        setLoadingMaterials(false);
+        console.error('Error fetching CuttingTechs:', error);
+        setLoading(false);
       }
     };
 
-    getMaterials();
+    getCuttingTechs();
   }, []);
 
   const handleOpenModal = () => {
     setIsModalOpen(true);
   };
+
 
   const handleOpenSheetModal = () => {
     setIsSheetModalOpen(true);
@@ -76,18 +96,53 @@ function Materials() {
     setIsModalOpen(false);
     setIsSheetModalOpen(false);
   };
+  
 
-  const handleAddMaterial = (newMaterial) => {
-    setMaterials((prevMaterials) => [...prevMaterials, newMaterial]);
+
+  const handleAddMaterial = async () => {
+    await getMaterials();
+
   };
+  const handleAddSheet = (newSheet) => {
+    setSelectedMaterial((prevSelectedMaterial) => ({
+      ...prevSelectedMaterial,
+      sheets: [...prevSelectedMaterial.sheets, newSheet],
+    }));
+
+    setMaterials((prevMaterials) =>
+      prevMaterials.map((material) =>
+        material.id === selectedMaterial.id
+          ? { ...material, sheets: [...material.sheets, newSheet] }
+          : material
+      )
+    );
+    setIsSheetModalOpen(false); // Close the modal after adding the sheet
+  };
+
 
   const handleCardClick = (material) => {
+   
     setSelectedMaterial(material);
   };
+
+  const RenderData = () => {
+    getMaterials();
+    const foundMaterial = materials.find((material) => material.id === selectedMaterial.id);
+    if (foundMaterial) {
+      setSelectedMaterial(foundMaterial);
+      console.log("Data Fetched again");
+      
+    } else {
+      console.error(`Material not found`);
+    }
+  };
+
+
 
   const handleDeleteMaterial = async (materialId) => {
     try {
       await deleteDocument('Materials', materialId);
+      await deleteDocumentsByMaterialId('RateTable', materialId);
       setMaterials((prevMaterials) =>
         prevMaterials.filter((material) => material.id !== materialId)
       );
@@ -99,13 +154,15 @@ function Materials() {
 
   // Filter materials based on search query
   const filteredMaterials = materials.filter((material) =>
-    material.name.toLowerCase().includes(searchQuery.toLowerCase())
+    material?.name?.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
+  if (loading)
+    return <PreLoader />
   return (
     <div className="w-full bg-slate-100 font-body">
       <NavbarAdmin />
-      <main className="m-auto flex min-h-screen flex-col px-4 sm:px-6 lg:px-[5%] py-5 items-center">
+      <main className="m-auto w-full flex min-h-screen flex-col px-4 sm:px-6 lg:px-[5%] py-5 items-center">
         <h1 className="text-center font-primary text-2xl sm:text-3xl mb-5">Materials</h1>
 
         <div className="mt-6 w-full space-y-5 rounded-lg border border-gray-300 bg-white p-4 sm:p-6 lg:p-8 flex flex-col lg:flex-row justify-start items-center lg:space-y-0 lg:space-x-5">
@@ -130,7 +187,7 @@ function Materials() {
 
         {/* Materials Grid */}
         <div className="my-16 w-full grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 font-body">
-          {loadingMaterials ? (
+          {loading ? (
             <div>Loading Materials...</div>
           ) : errorMaterials ? (
             <div className="text-red-500">{errorMaterials}</div>
@@ -144,16 +201,11 @@ function Materials() {
               >
                 <div className="flex justify-between items-center mb-4">
                   <h2 className="text-xl font-semibold">{material.name}</h2>
-                  <Button
-                    variant="destructive"
-                    size="sm"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleDeleteMaterial(material.id);
-                    }}
-                  >
-                    Delete
-                  </Button>
+
+                  <img src={deletesvg} alt="" onClick={(e) => {
+                    e.stopPropagation();
+                    handleDeleteMaterial(material.id);
+                  }} />
                 </div>
                 <div className="text-gray-600">
                   <p>Sheets: {material.sheets ? material.sheets.length : 0}</p>
@@ -173,6 +225,7 @@ function Materials() {
             </h2>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 mb-8">
+
               <div className="bg-white shadow-md rounded-lg border p-6">
                 <h3 className="text-xl font-semibold mb-4">Material Settings</h3>
                 <div className="text-gray-600 space-y-2">
@@ -192,29 +245,52 @@ function Materials() {
                   </div>
                 </div>
               </div>
-            </div>
+              <div className="bg-white shadow-md rounded-lg border p-6">
+                <h3 className="text-xl font-semibold mb-4">Rate Table:{selectedMaterial.name} </h3>
 
+                {
+                  cuttingTechs.map(cuttingtech => (
+                    <div key={cuttingtech.id} className="flex  cursor-pointer text-sm  text-blue-500" onClick={() => {
+                      navigate('/admin/rate-table', {
+                        state: {
+                          cuttingTech: cuttingtech,
+                          material: selectedMaterial,
+                        },
+                      });
+                    }}>
+                      {cuttingtech.name} : {selectedMaterial.name}
+                    </div>
+                  ))
+                }
+              </div>
+            </div>
             {/* Sheets Table */}
             <div className='w-full'>
-                    {selectedMaterial && (
-                        <>
-                            <Button
-                                variant="default"
-                                className="rounded-full font-secondary"
-                                onClick={handleOpenSheetModal} // Open sheet modal on click
-                            >
-                                +Add new Sheet
-                            </Button>
-                            <DataTable
-                                data={selectedMaterial?.sheets?.map(sheet => ({ ...sheet, id: selectedMaterial.id })) || []}
-                                columns={SheetsColumn}
-                            />
+              {selectedMaterial && (
+                <>
+                  <Button
+                    variant="default"
+                    className="rounded-full font-secondary"
+                    onClick={handleOpenSheetModal} // Open sheet modal on click
+                  >
+                    +Add new Sheet
+                  </Button>
+                  <DataTable
+                    data={selectedMaterial?.sheets?.map(sheet => ({
+                      ...sheet,
+                      id: selectedMaterial.id,
+                      onSave: () => RenderData(), // pass the save callback function
+                      
+                    })) || []}
+                    columns={SheetsColumn}
+                  />
 
-                        </>
-                    )}
-                </div>
 
-           
+                </>
+              )}
+            </div>
+
+
           </div>
         )}
       </main>
@@ -234,7 +310,7 @@ function Materials() {
         <Modal
           isOpen={isSheetModalOpen}
           onClose={handleCloseModal}
-          onAdd={() => { }} // Function to handle adding a new sheet
+          onAdd={handleAddSheet} // Update this to handle adding the new sheet
           collectionName="Materials" // This is not actually used since we're updating an existing document
           inputFields={inputFieldsSheet} // Fields to be displayed in the modal for adding a sheet
           initialValues={initialSheetState} // Initial values for the sheet form
