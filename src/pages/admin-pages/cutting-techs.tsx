@@ -5,11 +5,16 @@ import FooterAdmin from '@/components/footer/fouter-admin';
 import NavbarAdmin from '@/components/nav/navbar-admin';
 import { fetchDocuments, deleteDocument } from '@/services/db-services';
 import PreLoader from '@/components/pre-loader';
-import deletesvg from '@/assets/icons/delete.svg'
+import deletesvg from '@/assets/icons/delete.svg';
+import ConfirmationDialog from '@/components/_ui/confirmation'; // Import ConfirmationDialog
+
 function CuttingTechs() {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [cuttingTechs, setCuttingTechs] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [openConfirm, setOpenConfirm] = useState(false); // For confirmation dialog
+    const [techToDelete, setTechToDelete] = useState(null); // Store the technology to be deleted
+
     const initialTechState = {
         name: '',
         maxWidth: '',
@@ -18,7 +23,7 @@ function CuttingTechs() {
         setupMode: '',
         sheetChangeTime: '',
         sheetChangeMode: '',
-      };
+    };
 
     const inputFields = [
         { name: 'name', type: 'text', placeholder: 'Technology Name' },
@@ -28,7 +33,7 @@ function CuttingTechs() {
         { name: 'setupMode', type: 'text', placeholder: 'Setup mode' },
         { name: 'sheetChangeTime', type: 'number', placeholder: 'Sheet change time (s)' },
         { name: 'sheetChangeMode', type: 'text', placeholder: 'Sheet change mode' },
-      ];
+    ];
 
     // Collection name for cutting technologies
     const collectionName = 'CuttingTechs';
@@ -58,28 +63,33 @@ function CuttingTechs() {
     };
 
     const handleAddCuttingTech = (newTech) => {
-       
         setCuttingTechs([...cuttingTechs, newTech]);
     };
 
-    const handleDeleteCuttingTech = async (techId) => {
-        if (!techId) {
-          console.error('Tech ID is undefined');
-          return;
+    const handleDeleteCuttingTech = async () => {
+        if (!techToDelete?.id) {
+            console.error('Tech ID is undefined');
+            return;
         }
       
         try {
-          // Delete the document from Firestore
-          await deleteDocument(collectionName, techId);
+            // Delete the document from Firestore
+            await deleteDocument(collectionName, techToDelete.id);
       
-          // Remove the tech from local state for real-time UI update
-          setCuttingTechs(cuttingTechs.filter(tech => tech.id !== techId));
+            // Remove the tech from local state for real-time UI update
+            setCuttingTechs(cuttingTechs.filter(tech => tech.id !== techToDelete.id));
+            setOpenConfirm(false); // Close the confirmation dialog
         } catch (error) {
-          console.error('Error deleting cutting technology:', error);
+            console.error('Error deleting cutting technology:', error);
         }
-      };
-      if(loading)
-        return <PreLoader/>
+    };
+
+    const handleDeleteClick = (tech) => {
+        setTechToDelete(tech); // Store the technology to be deleted
+        setOpenConfirm(true);  // Open the confirmation dialog
+    };
+
+    if (loading) return <PreLoader />;
 
     return (
         <div className="w-full bg-slate-100 font-body ">
@@ -107,7 +117,12 @@ function CuttingTechs() {
                                     {tech.name}
                                 </h1>
                                 
-                                <img src={deletesvg} className=' cursor-pointer' alt="Delete" onClick={() => handleDeleteCuttingTech(tech.id)}/>
+                                <img 
+                                    src={deletesvg} 
+                                    className=' cursor-pointer' 
+                                    alt="Delete" 
+                                    onClick={() => handleDeleteClick(tech)} // Open confirmation dialog
+                                />
                             </div>
                             <div className="mx-2 mt-6 text-[#535353]">
                                 <div className="mt-4 flex justify-between">
@@ -140,6 +155,7 @@ function CuttingTechs() {
                 </div>
             </main>
             <FooterAdmin />
+
             {/* Modal Component */}
             <Modal 
                 isOpen={isModalOpen} 
@@ -148,6 +164,13 @@ function CuttingTechs() {
                 collectionName={collectionName}
                 inputFields={inputFields}
                 initialValues={initialTechState}
+            />
+
+            {/* Confirmation Dialog */}
+            <ConfirmationDialog
+                open={openConfirm}
+                onConfirm={handleDeleteCuttingTech} // Perform delete after confirmation
+                onCancel={() => setOpenConfirm(false)} // Close dialog on cancel
             />
         </div>
     );

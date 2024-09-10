@@ -139,11 +139,20 @@
             "default": 8
           }
         ],
+        "loops": [
+          {
+            "name": "holes",
+            "countParam": "E",
+            "template": "<circle key='hole-{i}' fill='white' cx='{centerX + (C / 2) * Math.cos((i * (360 / E)) * (Math.PI / 180))}' cy='{centerY + (C / 2) * Math.sin((i * (360 / E)) * (Math.PI / 180))}' r='{D / 2}' stroke='black' stroke-width='0.25%' />"
+          }
+        ],
         "dependencies": {
-          "E_half": "{D} / 2",
-          "holes": "{% for i in range(0, E) %}<circle cx='{{ (C / 2) * Math.cos((i * 2 * Math.PI) / E) }}' cy='{{ (C / 2) * Math.sin((i * 2 * Math.PI) / E) }}' r='{E_half}' fill='white' />{% endfor %}"
+          "centerX": 0,
+          "centerY": 0,
+          "viewBoxWidth": "A + 50",
+          "viewBoxHeight": "A + 50"
         },
-        "svgContent": "<svg viewBox='-150 -100 300 300' width='300' height='300' xmlns='http://www.w3.org/2000/svg'><circle cx='0' cy='0' r='{A / 2}' fill='#E9E9F0' /><circle cx='0' cy='0' r='{B / 2}' fill='white' />{holes}<circle cx='0' cy='0' r='{C / 2}' stroke='black' fill='none' /></svg>"
+        "svgContent": "<svg style='width:100%;height:90vh;' viewBox='-210.00 -175.00 400.00 400.00' xmlns='http://www.w3.org/2000/svg'><circle cx='{centerX}' cy='{centerY}' r='{A / 2}' fill='#E9E9F0' stroke='black' stroke-width='0.25%' /><circle cx='{centerX}' cy='{centerY}' r='{B / 2}' fill='white' stroke='black' stroke-width='0.25%' />{holes}<circle cx='{centerX}' cy='{centerY}' r='{C / 2}' stroke='black' fill='none' stroke-width='0.25%' /></svg>"
       },
       {
         "name": "Circular Plate",

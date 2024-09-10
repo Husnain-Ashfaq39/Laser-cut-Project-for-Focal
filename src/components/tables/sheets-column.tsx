@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/rules-of-hooks */
 import { useState } from "react";
 
 import { DataTableColumnHeader } from "./data-table-column-header";
@@ -5,6 +6,8 @@ import { handleDeleteSheet, updateItemInArrayField } from "@/services/db-service
 import editsvg from '@/assets/icons/edit.svg';
 import deletesvg from '@/assets/icons/delete.svg';
 import EditModal from "../edit-modal";
+import ConfirmationDialog from "@/components/_ui/confirmation"; // Make sure the import path is correct
+
 
 export const SheetsColumn = [
   {
@@ -80,24 +83,33 @@ export const SheetsColumn = [
     cell: ({ row }) => {
       const sheetData = row.original; // The specific sheet data
       const materialId = sheetData.id; // Access the id here
-      const onSave=sheetData.onSave;
-      // eslint-disable-next-line react-hooks/rules-of-hooks
+     
+
       const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+      const [openConfirm, setOpenConfirm] = useState(false); // For confirmation dialog
 
       const handleEditClick = () => {
         setIsEditModalOpen(true);
       };
 
       const handleDeleteClick = () => {
-        handleDeleteSheet(materialId, sheetData);
+        setOpenConfirm(true); // Open the confirmation dialog
       };
 
-      const handleSaveSheetData=(data,updatedSheetData)=>{
+      const handleConfirmDelete = async () => {
+        try {
+         
+          await handleDeleteSheet(materialId, sheetData);
+          setOpenConfirm(false); // Close the dialog on success
+        } catch (error) {
+          console.error('Error deleting sheet:', error);
+        }
+      };
 
-        updateItemInArrayField("Materials",materialId,"sheets",data,updatedSheetData);
-        onSave();
-
-      }
+      const handleSaveSheetData = (data, updatedSheetData) => {
+        updateItemInArrayField("Materials", materialId, "sheets", data, updatedSheetData);
+       
+      };
 
       return (
         <>
@@ -124,9 +136,15 @@ export const SheetsColumn = [
             onSave={handleSaveSheetData} // Assuming you have this function implemented
             fieldsToShow={['thickness', 'size', 'sheetCost', 'sheetRate', 'appliedMarkup']}
           />
+          <ConfirmationDialog
+            open={openConfirm}
+            onConfirm={handleConfirmDelete} // Call the delete function here
+            onCancel={() => setOpenConfirm(false)} // Close dialog on cancel
+          />
         </>
       );
     },
     enableSorting: false,
   }
+
 ];

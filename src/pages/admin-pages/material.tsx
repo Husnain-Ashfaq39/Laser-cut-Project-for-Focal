@@ -8,6 +8,8 @@ import { deleteDocument, deleteDocumentsByMaterialId, fetchDocuments } from '@/s
 import { DataTable } from '@/components/tables/data-table';
 import { SheetsColumn } from '@/components/tables/sheets-column';
 import deletesvg from '@/assets/icons/delete.svg'
+import leftsvg from '@/assets/icons/left.svg'
+import rightsvg from '@/assets/icons/right.svg'
 import PreLoader from '@/components/pre-loader';
 import { useNavigate } from 'react-router-dom';
 
@@ -23,6 +25,11 @@ function Materials() {
 
   const [errorMaterials, setErrorMaterials] = useState(null);
   const [loading, setLoading] = useState(true);
+
+  // Filter materials based on search query
+  const filteredMaterials = materials.filter((material) =>
+    material?.name?.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
   const initialMaterialState = {
     name: '',
@@ -53,6 +60,20 @@ function Materials() {
     { name: 'sheetRate', type: 'number', placeholder: 'Sheet Rate' },
     { name: 'appliedMarkup', type: 'number', placeholder: 'Applied Markup' },
   ];
+
+
+  const materialsPerPage = 3; // Display 3 materials per page
+  const [currentPage, setCurrentPage] = useState(1);
+
+  const totalPages = Math.ceil(filteredMaterials.length / materialsPerPage);
+  
+  // Function to paginate the materials
+  const paginateMaterials = (materials, page, perPage) => {
+    const startIndex = (page - 1) * perPage;
+    return materials.slice(startIndex, startIndex + perPage);
+  };
+
+  const paginatedMaterials = paginateMaterials(filteredMaterials, currentPage, materialsPerPage);
 
   // Fetch Materials
   const getMaterials = async () => {
@@ -125,17 +146,6 @@ function Materials() {
     setSelectedMaterial(material);
   };
 
-  const RenderData = () => {
-    getMaterials();
-    const foundMaterial = materials.find((material) => material.id === selectedMaterial.id);
-    if (foundMaterial) {
-      setSelectedMaterial(foundMaterial);
-      console.log("Data Fetched again");
-      
-    } else {
-      console.error(`Material not found`);
-    }
-  };
 
 
 
@@ -152,10 +162,7 @@ function Materials() {
     }
   };
 
-  // Filter materials based on search query
-  const filteredMaterials = materials.filter((material) =>
-    material?.name?.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  
 
   if (loading)
     return <PreLoader />
@@ -191,8 +198,8 @@ function Materials() {
             <div>Loading Materials...</div>
           ) : errorMaterials ? (
             <div className="text-red-500">{errorMaterials}</div>
-          ) : filteredMaterials.length > 0 ? (
-            filteredMaterials.map((material) => (
+          ) : paginatedMaterials.length > 0 ? (
+            paginatedMaterials.map((material) => (
               <div
                 key={material.id}
                 className={`bg-white shadow-md rounded-lg border p-6 cursor-pointer transition-transform transform hover:scale-105 ${selectedMaterial?.id === material.id ? 'border-blue-500' : 'border-gray-200'
@@ -217,6 +224,24 @@ function Materials() {
           )}
         </div>
 
+        {/* Stepper to navigate between sets of materials */}
+        <div className="flex justify-center space-x-4 my-4">
+          <img src={leftsvg} className=' cursor-pointer' onClick={() => setCurrentPage(currentPage - 1)}  alt="" />
+          
+          {Array.from({ length: totalPages }, (_, index) => (
+            <Button
+            className='rounded-full'
+              key={index}
+              variant={currentPage === index + 1 ? "destructive" : "default"}
+              onClick={() => setCurrentPage(index + 1)}
+            >
+              {index + 1}
+            </Button>
+          ))}
+         
+          <img src={rightsvg} className=' cursor-pointer'  onClick={() => setCurrentPage(currentPage + 1)}  alt="" />
+        </div>
+
         {/* Selected Material Details */}
         {selectedMaterial && (
           <div className="w-full mb-14">
@@ -225,7 +250,6 @@ function Materials() {
             </h2>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 mb-8">
-
               <div className="bg-white shadow-md rounded-lg border p-6">
                 <h3 className="text-xl font-semibold mb-4">Material Settings</h3>
                 <div className="text-gray-600 space-y-2">
@@ -238,59 +262,46 @@ function Materials() {
                     <span>{selectedMaterial.standardMarkup}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="font-medium">
-                      Customer Supplied Fee (%):
-                    </span>
+                    <span className="font-medium">Customer Supplied Fee (%):</span>
                     <span>{selectedMaterial.customerSuppliedFee}</span>
                   </div>
                 </div>
               </div>
               <div className="bg-white shadow-md rounded-lg border p-6">
-                <h3 className="text-xl font-semibold mb-4">Rate Table:{selectedMaterial.name} </h3>
+                <h3 className="text-xl font-semibold mb-4">Rate Table: {selectedMaterial.name}</h3>
 
-                {
-                  cuttingTechs.map(cuttingtech => (
-                    <div key={cuttingtech.id} className="flex  cursor-pointer text-sm  text-blue-500" onClick={() => {
-                      navigate('/admin/rate-table', {
-                        state: {
-                          cuttingTech: cuttingtech,
-                          material: selectedMaterial,
-                        },
-                      });
-                    }}>
-                      {cuttingtech.name} : {selectedMaterial.name}
-                    </div>
-                  ))
-                }
+                {cuttingTechs.map(cuttingtech => (
+                  <div key={cuttingtech.id} className="flex cursor-pointer text-sm text-blue-500" onClick={() => {
+                    navigate('/admin/rate-table', {
+                      state: {
+                        cuttingTech: cuttingtech,
+                        material: selectedMaterial,
+                      },
+                    });
+                  }}>
+                    {cuttingtech.name}: {selectedMaterial.name}
+                  </div>
+                ))}
               </div>
             </div>
             {/* Sheets Table */}
             <div className='w-full'>
-              {selectedMaterial && (
-                <>
-                  <Button
-                    variant="default"
-                    className="rounded-full font-secondary"
-                    onClick={handleOpenSheetModal} // Open sheet modal on click
-                  >
-                    +Add new Sheet
-                  </Button>
-                  <DataTable
-                    data={selectedMaterial?.sheets?.map(sheet => ({
-                      ...sheet,
-                      id: selectedMaterial.id,
-                      onSave: () => RenderData(), // pass the save callback function
-                      
-                    })) || []}
-                    columns={SheetsColumn}
-                  />
-
-
-                </>
-              )}
+              <Button
+                variant="default"
+                className="rounded-full font-secondary"
+                onClick={handleOpenSheetModal}
+              >
+                +Add new Sheet
+              </Button>
+              <DataTable
+                data={selectedMaterial?.sheets?.map(sheet => ({
+                  ...sheet,
+                  id: selectedMaterial.id,
+                 
+                })) || []}
+                columns={SheetsColumn}
+              />
             </div>
-
-
           </div>
         )}
       </main>
@@ -310,16 +321,15 @@ function Materials() {
         <Modal
           isOpen={isSheetModalOpen}
           onClose={handleCloseModal}
-          onAdd={handleAddSheet} // Update this to handle adding the new sheet
-          collectionName="Materials" // This is not actually used since we're updating an existing document
-          inputFields={inputFieldsSheet} // Fields to be displayed in the modal for adding a sheet
-          initialValues={initialSheetState} // Initial values for the sheet form
-          updateDoc={true} // Indicate that this is an update operation
-          docID={selectedMaterial.id} // Pass the selected material ID
+          onAdd={handleAddSheet}
+          collectionName="Materials"
+          inputFields={inputFieldsSheet}
+          initialValues={initialSheetState}
+          updateDoc={true}
+          docID={selectedMaterial.id}
           arrayFieldName="sheets"
         />
       )}
-
     </div>
   );
 }

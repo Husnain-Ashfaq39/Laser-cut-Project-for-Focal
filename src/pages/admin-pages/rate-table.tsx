@@ -12,6 +12,8 @@ import editsvg from '@/assets/icons/edit.svg';
 import PreLoader from '@/components/pre-loader';
 import { useLocation } from 'react-router-dom';
 import EditModal2 from '@/components/edit-modal-2';
+import leftsvg from '@/assets/icons/left.svg'
+import rightsvg from '@/assets/icons/right.svg'
 
 function RateTable() {
   const [isSheetModalOpen, setIsSheetModalOpen] = useState(false);
@@ -26,6 +28,9 @@ function RateTable() {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const location = useLocation();
+  const [rateTableExist, setrateTableExist] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1); // Added for pagination
+  const materialsPerPage = 3; // Show 3 materials at a time
 
   const initialSheetState = {
     thickness: '',
@@ -44,7 +49,6 @@ function RateTable() {
   ];
 
   useEffect(() => {
-    // Fetch Materials and CuttingTechs
     const fetchData = async () => {
       try {
         const [fetchedMaterials, fetchedCuttingTechs] = await Promise.all([
@@ -54,7 +58,7 @@ function RateTable() {
 
         setMaterials(fetchedMaterials);
         setCuttingTechs(fetchedCuttingTechs);
-        setSelectedCuttingTech(fetchedCuttingTechs[0]); // Set the first item as default
+        setSelectedCuttingTech(fetchedCuttingTechs[0]);
       } catch (error) {
         console.error('Error fetching data:', error);
         setErrorMaterials('Failed to fetch Materials');
@@ -73,9 +77,10 @@ function RateTable() {
         { field: 'materialID', operator: '==', value: material.id },
         { field: 'cuttingTechID', operator: '==', value: selectedCuttingTech.id },
       ]);
-
+  
       if (existingDocuments.length > 0) {
         setRateTablesetting(existingDocuments[0]);
+        setrateTableExist(true);
       } else {
         const rateTableDocument = {
           materialID: material.id,
@@ -86,11 +91,13 @@ function RateTable() {
           rateData: [],
         };
         const newDoc = await addDocument('RateTable', rateTableDocument);
+  
         setRateTablesetting(newDoc);
-        console.log('RateTable document created successfully.');
+        setrateTableExist(true);
+        fetchUpdatedDocs(material);
       }
     } catch (error) {
-      console.error('Error fetching or creating RateTable document:', error);
+      console.error('Error fetching or creating RateTable:', error);
     }
   }, [selectedCuttingTech]);
 
@@ -101,18 +108,26 @@ function RateTable() {
       setSelectedCuttingTech(cuttingTech);
       fetchUpdatedDocs(material);
     }
-  }, [location.state,fetchUpdatedDocs]);
+  }, [location.state, fetchUpdatedDocs]);
 
   const handleCardClick = async (material) => {
     setSelectedMaterial(material);
-    if (!selectedCuttingTech) {
-      console.error('Error: No Cutting Technology selected.');
-      return;
+    try {
+      const existingDocuments = await fetchDocuments('RateTable', [
+        { field: 'materialID', operator: '==', value: material.id },
+        { field: 'cuttingTechID', operator: '==', value: selectedCuttingTech.id },
+      ]);
+  
+      if (existingDocuments.length > 0) {
+        setRateTablesetting(existingDocuments[0]);
+        setrateTableExist(true);
+      } else {
+        setrateTableExist(false);
+      }
+    } catch (error) {
+      console.error('Error fetching RateTable:', error);
     }
-    fetchUpdatedDocs(material);
   };
-
-
 
   const handleOpenEditModal = () => {
     setIsEditModalOpen(true);
@@ -120,9 +135,6 @@ function RateTable() {
 
   const handleSaveRateTable = async (updatedRateTable) => {
     try {
-      
-      console.log(updatedRateTable);
-      
       await updateDocument('RateTable', updatedRateTable.id, updatedRateTable);
       setRateTablesetting(updatedRateTable);
       console.log('RateTable updated successfully.');
@@ -130,23 +142,19 @@ function RateTable() {
       console.error('Error updating RateTable:', error);
     }
   };
+
   const handleAddNewData = async (newSheetData) => {
     try {
-      // Assuming newSheetData contains the data from the form to be added to 'rateData'
       const updatedRateData = [...rateTablesetting.rateData, newSheetData];
   
-      // Update the document in the database with the new data
       await updateDocument('RateTable', rateTablesetting.id, { rateData: updatedRateData });
   
-      // Update the state to reflect the new data immediately in the table
       setRateTablesetting((prev) => ({
         ...prev,
         rateData: updatedRateData,
       }));
   
       console.log('New data added successfully.');
-  
-      // Close the modal
       setIsSheetModalOpen(false);
     } catch (error) {
       console.error('Error adding new data:', error);
@@ -156,6 +164,25 @@ function RateTable() {
   const filteredMaterials = materials.filter((material) =>
     material?.name?.toLowerCase().includes(searchQuery.toLowerCase())
   );
+
+  const paginatedMaterials = filteredMaterials.slice(
+    (currentPage - 1) * materialsPerPage,
+    currentPage * materialsPerPage
+  );
+
+  const totalPages = Math.ceil(filteredMaterials.length / materialsPerPage);
+
+  const handleNextPage = () => {
+    if (currentPage < totalPages) {
+      setCurrentPage(currentPage + 1);
+    }
+  };
+
+  const handlePrevPage = () => {
+    if (currentPage > 1) {
+      setCurrentPage(currentPage - 1);
+    }
+  };
 
   if (loading) return <PreLoader />;
 
@@ -192,7 +219,6 @@ function RateTable() {
             )}
           </div>
 
-          {/* Search Input */}
           <Search
             type="text"
             className="font-medium w-full lg:w-56 rounded-lg h-10"
@@ -202,22 +228,20 @@ function RateTable() {
           />
         </div>
 
-        {/* Materials Grid */}
         <div className="my-16 w-full grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 font-body">
           {errorMaterials ? (
             <div className="text-red-500">{errorMaterials}</div>
-          ) : filteredMaterials.length > 0 ? (
-            filteredMaterials?.map((material) => (
+          ) : paginatedMaterials.length > 0 ? (
+            paginatedMaterials.map((material) => (
               <div
                 key={material.id}
                 className={`bg-white shadow-md rounded-lg border p-6 cursor-pointer transition-transform transform hover:scale-105 ${selectedMaterial?.id === material.id ? 'border-blue-500' : 'border-gray-200'
                   }`}
                 onClick={() => handleCardClick(material)}
               >
-                
-                  <h2 className="text-xl font-semibold mb-4">{material.name}</h2>
-                  
-               
+
+                <h2 className="text-xl font-semibold mb-4">{material.name}</h2>
+
                 <div className="text-gray-600">
                   <p>Sheets: {material.sheets ? material.sheets.length : 0}</p>
                 </div>
@@ -228,77 +252,107 @@ function RateTable() {
           )}
         </div>
 
-        {/* Selected Material Details */}
-        {selectedMaterial && (
-          <div className="w-full mb-14">
-            <h2 className="text-2xl font-semibold mb-6">
-              {selectedMaterial?.name} Details
-            </h2>
+       
+       
+         <div className="flex justify-center space-x-4 my-4">
+          <img src={leftsvg} className=' cursor-pointer' onClick={handlePrevPage}  alt="" />
+          
+          {Array.from({ length: totalPages }, (_, index) => (
+            <Button
+            className='rounded-full'
+              key={index}
+              variant={currentPage === index + 1 ? "destructive" : "default"}
+              onClick={() => setCurrentPage(index + 1)}
+            >
+              {index + 1}
+            </Button>
+          ))}
+         
+          <img src={rightsvg} className=' cursor-pointer'  onClick={handleNextPage}  alt="" />
+        </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 mb-8">
-              <div className="bg-white shadow-md rounded-lg border p-6">
-                <div className='flex justify-between mb-4'>
-                  <h3 className="text-xl font-semibold ">RateTable Settings</h3>
-                  <img
-                    src={editsvg}
-                    alt=""
-                    className='cursor-pointer'
-                    onClick={handleOpenEditModal}
-                  />
-                </div>
-                <div className="text-gray-600 space-y-2">
-                  <div className="flex justify-between">
-                    <span className="font-medium">Name</span>
-                    <span>{rateTablesetting?.name}</span>
+        {selectedMaterial && (
+          rateTableExist ? (
+            <div className="w-full mb-14">
+              <h2 className="text-2xl font-semibold mb-6">
+                {selectedMaterial?.name} Details
+              </h2>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 mb-8">
+                <div className="bg-white shadow-md rounded-lg border p-6">
+                  <div className="flex justify-between mb-4">
+                    <h3 className="text-xl font-semibold">RateTable Settings</h3>
+                    <img
+                      src={editsvg}
+                      alt="Edit"
+                      className="cursor-pointer"
+                      onClick={handleOpenEditModal}
+                    />
                   </div>
-                  <div className="flex justify-between">
-                    <span className="font-medium">Base hourly rate markup</span>
-                    <span>{rateTablesetting?.baseHourlyRateMarkup}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="font-medium">Etching feed rate</span>
-                    <span>{rateTablesetting?.etchingFeedRate}</span>
+                  <div className="text-gray-600 space-y-2">
+                    <div className="flex justify-between">
+                      <span className="font-medium">Name</span>
+                      <span>{rateTablesetting?.name}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="font-medium">Base hourly rate markup</span>
+                      <span>{rateTablesetting?.baseHourlyRateMarkup}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="font-medium">Etching feed rate</span>
+                      <span>{rateTablesetting?.etchingFeedRate}</span>
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
 
-            <div className='w-full'>
-              {selectedMaterial && (
-                <>
-                  <Button
-                    variant="default"
-                    className="rounded-full font-secondary"
-                    onClick={()=>setIsSheetModalOpen(true)}
-                  >
-                    +Add new Data
-                  </Button>
-                  <DataTable
-                    data={rateTablesetting?.rateData?.map(data => ({ ...data, id: rateTablesetting?.id,material:selectedMaterial })) || []}
-                    columns={TableDataColumn}
-                  />
-                </>
-              )}
+              <div className="w-full">
+                <Button
+                  variant="default"
+                  className="rounded-full font-secondary"
+                  onClick={() => setIsSheetModalOpen(true)}
+                >
+                  +Add new Data
+                </Button>
+                <DataTable
+                  data={
+                    rateTablesetting?.rateData?.map(data => ({
+                      ...data,
+                      id: rateTablesetting?.id,
+                      material: selectedMaterial,
+                    })) || []
+                  }
+                  columns={TableDataColumn}
+                />
+              </div>
             </div>
-          </div>
+          ) : (
+            <div className="w-full bg-white shadow-md rounded-lg border p-6">
+              <h3 className="text-xl font-semibold mb-4">No Rate Table Available</h3>
+              <p className="mb-4 text-gray-600">
+                No rate table exists for the selected material and cutting technology.
+              </p>
+              <Button variant="default" onClick={() => fetchUpdatedDocs(selectedMaterial)}>
+                Create Rate Table
+              </Button>
+            </div>
+          )
         )}
       </main>
       <FooterAdmin />
 
-      {/* Edit RateTable Modal */}
       <EditModal2
         isOpen={isEditModalOpen}
         onClose={() => setIsEditModalOpen(false)}
         rateTablesetting={rateTablesetting}
         onSave={handleSaveRateTable}
-        
       />
 
       {selectedMaterial && (
         <Modal
           isOpen={isSheetModalOpen}
           onClose={() => setIsSheetModalOpen(false)}
-          onAdd={(newData)=>handleAddNewData(newData)} // Pass the function to add new data
+          onAdd={(newData) => handleAddNewData(newData)}
           collectionName="RateTable"
           inputFields={inputFieldsSheet}
           initialValues={initialSheetState}

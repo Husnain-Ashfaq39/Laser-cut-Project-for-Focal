@@ -71,18 +71,31 @@ function CustomerList() {
     const handleAddCustomer = async () => {
         setIsAdding(true);
         try {
+            // Add the new customer via the signup handler (adjust according to your API call)
             await handleSignup(newCustomer.name, newCustomer.email, newCustomer.password);
-            const updatedCustomers = [...customers, { ...newCustomer, creditAccount: 'active' }]; // Assuming new customers have 'active' creditAccount
-            setCustomers(updatedCustomers);
-            setFilteredCustomers(updatedCustomers);
+            
+            // After successfully adding the user, immediately update the customers state
+            const newCustomerData = { 
+                name: newCustomer.name, 
+                email: newCustomer.email, 
+                password: newCustomer.password, 
+                creditAccount: 'active' // Assuming 'active' status for the new user
+            };
+    
+            // Update both the customers and filteredCustomers state arrays
+            setCustomers(prevCustomers => [...prevCustomers, newCustomerData]);
+            setFilteredCustomers(prevFiltered => [...prevFiltered, newCustomerData]);
+    
+            // Close the modal and reset form fields
             setIsModalOpen(false);
-            setNewCustomer({ name: '', email: '', password: '' }); // Reset form
+            setNewCustomer({ name: '', email: '', password: '' }); // Reset the form
         } catch (error) {
             console.error('Error adding customer:', error);
         } finally {
             setIsAdding(false);
         }
     };
+    
 
     const handleShowCreditRequests = () => {
         setShowCreditRequests(prev => !prev);

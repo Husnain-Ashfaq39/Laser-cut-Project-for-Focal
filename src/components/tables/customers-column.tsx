@@ -107,7 +107,7 @@ export const CustomerColumn: ColumnDef<Task>[] = [
   },
   {
     accessorKey: "id",
-    header: ({ column }) => <DataTableColumnHeader column={column} title="Action" />,
+    header: ({ column }) => <DataTableColumnHeader column={column} title="Manage Credit Reqs" />,
     cell: ({ row }) => {
       const userEmail: string = row.getValue("email");
       const userID: string = row.getValue("id");
