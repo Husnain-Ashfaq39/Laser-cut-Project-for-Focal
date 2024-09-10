@@ -8,15 +8,19 @@ import { useSelector } from 'react-redux';
 import { RootState } from '../redux/store';
 import PreLoader from '@/components/pre-loader';
 import { uploadProfileImage, deleteProfileImage } from '@/services/storage-services';
-import { updateUserProfileImage } from '@/services/db-services';
+import verifiedsvg from '@/assets/icons/verified.svg'
 import { toast } from '@/components/_ui/toast/use-toast';
 import { deleteUser } from '@/services/auth';
+import { updateUserProfileField } from '@/services/db-services';
+import ConfirmationDialog from '@/components/_ui/confirmation';
+
 
 function ProfileDetails() {
     const user = useSelector((state: RootState) => state.auth);
     const navigate = useNavigate();
     const [profilePic, setProfilePic] = useState<string>("https://via.placeholder.com/150");
     const [loading, setLoading] = useState(true);
+    const [openConfirm, setOpenConfirm] = useState(false);
 
     useEffect(() => {
         if (user) {
@@ -32,7 +36,7 @@ function ProfileDetails() {
                 toast({
                     title: "Profile Picture",
                     description:
-                    "You Profile Picture is being Uploaded please wait!",
+                        "You Profile Picture is being Uploaded please wait!",
                     duration: 5000,
                 });
                 // Delete the old image if it exists
@@ -41,12 +45,41 @@ function ProfileDetails() {
                 const downloadURL = await uploadProfileImage(user.id, file);
 
                 // Update Firestore with the new image URL
-                await updateUserProfileImage(user.id, downloadURL);
+                // await updateUserProfileImage(user.id, downloadURL);
+                await updateUserProfileField(user.id, "profileImage", downloadURL);
                 setProfilePic(downloadURL);
             } catch (error) {
                 console.error('Error updating profile image:', error);
             }
         }
+    };
+    const handleRequestCredit = async () => {
+        if (user.creditAccount == "request") {
+            toast({
+                title: "Already Requested",
+                description:
+                    "You have already requested for Credit Account",
+                duration: 5000,
+            });
+        }
+        else {
+
+            await updateUserProfileField(user.id, "creditAccount", "request");
+            toast({
+                title: "Request for Credit Account",
+                description:
+                    "Request has been sent for Credit Account",
+                duration: 5000,
+            });
+        }
+    }
+    const handleDeleteClick = () => {
+        setOpenConfirm(true);
+    };
+    const handleConfirmDelete = () => {
+        deleteUser(user.email)
+        setOpenConfirm(false);
+
     };
 
     if (loading) return <PreLoader />;
@@ -72,40 +105,52 @@ function ProfileDetails() {
                 <section className="w-full max-w-7xl rounded-lg border border-gray-300 bg-white p-6">
                     <div className="flex flex-col justify-between gap-10">
                         <div className='m-3 p-3 space-y-8 w-full items-center'>
-                        <div className='flex flex-col md:flex-row md:justify-between w-full'>
-    <div className='flex items-center space-x-3'>
-        <div className="relative w-12 h-12 md:w-16 md:h-16">
-            <img
-                src={profilePic}
-                alt="User Profile"
-                className="rounded-full object-cover w-full h-full"
-            />
-            <div className="absolute bottom-0 right-0 bg-white rounded-full p-1 border">
-                <label htmlFor="file-input">
-                    <img src={editsvg} className='w-3 h-3 md:w-4 md:h-4 cursor-pointer' alt="Edit" />
-                </label>
-                <input
-                    id="file-input"
-                    type="file"
-                    className="hidden"
-                    accept="image/*"
-                    onChange={handleImageUpload}
-                />
-            </div>
-        </div>
-        <div className='flex flex-col'>
-            <div className='text-sm md:text-base'>{user.firstName} {user.lastName}</div>
-            <div className='text-xs md:text-sm text-gray-400'>{user.email}</div>
-        </div>
-    </div>
-    <Button
-        variant="destructive"
-        className="rounded-lg font-secondary text-sm md:text-base px-3 py-1 md:px-4 md:py-2 mt-5 lg:mt-0"
-        onClick={() => deleteUser(user.email)}
-    >
-        Delete My Account
-    </Button>
-</div>
+                            <div className='flex flex-col md:flex-row md:justify-between w-full'>
+                                <div className='flex items-center space-x-3'>
+                                    <div className="relative w-12 h-12 md:w-16 md:h-16">
+                                        <img
+                                            src={profilePic}
+                                            alt="User Profile"
+                                            className="rounded-full object-cover w-full h-full"
+                                        />
+                                        <div className="absolute bottom-0 right-0 bg-white rounded-full p-1 border">
+                                            <label htmlFor="file-input">
+                                                <img src={editsvg} className='w-3 h-3 md:w-4 md:h-4 cursor-pointer' alt="Edit" />
+                                            </label>
+                                            <input
+                                                id="file-input"
+                                                type="file"
+                                                className="hidden"
+                                                accept="image/*"
+                                                onChange={handleImageUpload}
+                                            />
+                                        </div>
+                                    </div>
+                                    <div className='flex flex-col'>
+                                        <div className='text-sm md:text-base flex space-x-1'>{user.firstName} {user.lastName} {user.creditAccount == "verified" && <img src={verifiedsvg} alt="" />} </div>
+                                        <div className='text-xs md:text-sm text-gray-400'>{user.email}</div>
+                                    </div>
+                                </div>
+                                <div className='flex space-x-1'>
+
+
+
+                                    {user.creditAccount != "verified" && <Button
+                                        variant="default"
+                                        className="rounded-lg font-body text-sm md:text-base px-3 py-1 md:px-4 md:py-2 mt-5 lg:mt-0"
+                                        onClick={handleRequestCredit}
+                                    >
+                                        Request for Credit Account
+                                    </Button>}
+                                    <Button
+                                        variant="destructive"
+                                        className="rounded-lg font-body text-sm md:text-base px-3 py-1 md:px-4 md:py-2 mt-5 lg:mt-0"
+                                        onClick={handleDeleteClick}
+                                    >
+                                        Delete My Account
+                                    </Button>
+                                </div>
+                            </div>
 
 
                             {/* Name */}
@@ -133,6 +178,11 @@ function ProfileDetails() {
                 </section>
             </main>
             <FooterAdmin />
+            <ConfirmationDialog
+                open={openConfirm}
+                onConfirm={handleConfirmDelete}
+                onCancel={() => setOpenConfirm(false)}
+            />
         </div>
     );
 }

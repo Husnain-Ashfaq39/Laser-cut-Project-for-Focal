@@ -3,12 +3,13 @@ import Modal from '@/components/Modal';
 import { Button } from '@/components/_ui/button';
 import FooterAdmin from '@/components/footer/fouter-admin';
 import NavbarAdmin from '@/components/nav/navbar-admin';
-import { fetchDocuments, deleteDocument } from '@/services/db-services'; // Import generic fetch and delete functions
-
+import { fetchDocuments, deleteDocument } from '@/services/db-services';
+import PreLoader from '@/components/pre-loader';
+import deletesvg from '@/assets/icons/delete.svg'
 function CuttingTechs() {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [cuttingTechs, setCuttingTechs] = useState([]);
-
+    const [loading, setLoading] = useState(true);
     const initialTechState = {
         name: '',
         maxWidth: '',
@@ -38,8 +39,10 @@ function CuttingTechs() {
             try {
                 const techs = await fetchDocuments(collectionName);
                 setCuttingTechs(techs);
+                setLoading(false);
             } catch (error) {
                 console.error('Error fetching cutting technologies:', error);
+                setLoading(false);
             }
         };
 
@@ -75,12 +78,15 @@ function CuttingTechs() {
           console.error('Error deleting cutting technology:', error);
         }
       };
-      
+      if(loading)
+        return <PreLoader/>
 
     return (
-        <div className="w-full bg-slate-100 font-body">
+        <div className="w-full bg-slate-100 font-body ">
             <NavbarAdmin />
-            <main className="m-auto flex min-h-screen flex-col px-[5%] py-5 items-center">
+            
+            <main className="m-auto flex min-h-screen flex-col px-[5%] py-5 items-center w-full">
+
                 <h1 className="text-center font-primary text-3xl mb-5">
                     Cutting Technologies
                 </h1>
@@ -100,13 +106,8 @@ function CuttingTechs() {
                                 <h1 className="font-body text-xl">
                                     {tech.name}
                                 </h1>
-                                <Button
-                                    variant="destructive"
-                                    className="rounded-lg font-body text-sm"
-                                    onClick={() => handleDeleteCuttingTech(tech.id)}
-                                >
-                                    Delete
-                                </Button>
+                                
+                                <img src={deletesvg} className=' cursor-pointer' alt="Delete" onClick={() => handleDeleteCuttingTech(tech.id)}/>
                             </div>
                             <div className="mx-2 mt-6 text-[#535353]">
                                 <div className="mt-4 flex justify-between">

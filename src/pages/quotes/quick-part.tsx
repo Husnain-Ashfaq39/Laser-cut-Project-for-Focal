@@ -1,5 +1,7 @@
 import * as React from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
+import { useDispatch } from "react-redux";
+import { v4 as uuidv4 } from "uuid";
 import { Button } from "@/components/_ui/button";
 import NavbarAdmin from "@/components/nav/navbar-admin";
 import FooterAdmin from "@/components/footer/fouter-admin";
@@ -10,6 +12,8 @@ import {
   DialogContent,
   DialogClose,
 } from "@/components/_ui/dialog";
+import { addFile } from "@/redux/slices/quote-parts-slice";
+import { useToast } from "@/components/_ui/toast/use-toast";
 
 type ShapeParameter = {
   shortName: string;
@@ -33,6 +37,7 @@ type Shape = {
 };
 
 const AddFromParametricLibrary: React.FunctionComponent = () => {
+  const dispatch = useDispatch();
   const location = useLocation();
   const navigate = useNavigate();
   const { shape } = (location.state as { shape: Shape }) || {};
@@ -202,6 +207,32 @@ const AddFromParametricLibrary: React.FunctionComponent = () => {
 
     return svgContent;
   };
+  const { toast } = useToast();
+  const handleSaveSVG = () => {
+    const svgBlob = new Blob([svgContent], { type: "image/svg+xml" });
+    const fileName = partName || shape?.name;
+    const svgFile = new File([svgBlob], `${fileName}.svg`, {
+      type: "image/svg+xml",
+    });
+
+    // Dispatch action to add the file with partName
+    dispatch(
+      addFile({
+        id: uuidv4(),
+        file: svgFile,
+        fileType: "svg",
+        name: fileName, // Add the partName as file name
+      }),
+    );
+
+    navigate("/quotes/new-quote");
+    toast({
+      variant: "default",
+      title: `${fileName} Added Successfully!`,
+      description: "You have successfully added your part.",
+      duration: 5000,
+    });
+  };
 
   const [svgContent, setSvgContent] =
     React.useState<string>(renderSVGContent());
@@ -336,7 +367,7 @@ const AddFromParametricLibrary: React.FunctionComponent = () => {
                 variant="default"
                 className="rounded-full"
                 onClick={() => {
-                  navigate("/quotes/history");
+                  handleSaveSVG();
                 }}
               >
                 Save

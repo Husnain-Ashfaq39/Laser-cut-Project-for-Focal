@@ -1,8 +1,11 @@
 import { ColumnDef } from "@tanstack/react-table";
 import { Task } from "@/data/quotes/schema";
 import { DataTableColumnHeader } from "./data-table-column-header";
-import { Button } from "../_ui/button";
-import { handleDeleteTableData } from "@/services/db-services";
+import { handleDeleteTableData, updateItemInArrayField } from "@/services/db-services";
+import editsvg from '@/assets/icons/edit.svg'
+import deletesvg from '@/assets/icons/delete.svg'
+import EditModal from "../edit-modal";
+import { useState } from "react";
 export const TableDataColumn: ColumnDef<Task>[] = [
   {
     accessorKey: "thickness",
@@ -75,24 +78,49 @@ export const TableDataColumn: ColumnDef<Task>[] = [
       <DataTableColumnHeader column={column} title="Action" />
     ),
     cell: ({ row }) => {
-        const tableData = row.original; // The specific sheet data you want to delete
-       console.log("id is "+tableData.id);
-       
-       
+      const tableData = { ...row.original }; // Create a shallow copy of row.original
+      const material = tableData.material;
+      delete tableData.material;
+      
+      console.log("id is " + JSON.stringify(material));
+      console.log("Material id is " + JSON.stringify(tableData));
+      
+      // eslint-disable-next-line react-hooks/rules-of-hooks
+      const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+      const handleEditClick = () => {
+        setIsEditModalOpen(true);
+      };
+      
+      const handleSaveTableData = (data, updatedData) => {
+        updateItemInArrayField("RateTable", tableData.id, "rateData", data, updatedData);
+      };
+      
         
   
       return (
+        <>
+       
         <div className="flex space-x-2">
           <span className="truncate font-medium lg:mr-[-50px] ">
-            <Button
-              variant="destructive"
-              className="rounded-full font-secondary h-8"
-              onClick={() => handleDeleteTableData(tableData)}
-            >
-              Delete
-            </Button>
+           
+            <div className="flex space-x-4">
+
+            <img src={editsvg} alt="" className=' cursor-pointer'  onClick={handleEditClick}/>
+            <img src={deletesvg} alt="" className=' cursor-pointer'  onClick={() => handleDeleteTableData(tableData)}/>
+            </div>
+                 
           </span>
         </div>
+        <EditModal
+        isOpen={isEditModalOpen}
+        onClose={() => setIsEditModalOpen(false)}
+        data={tableData}
+        onSave={handleSaveTableData}
+        fieldsToShow={['thickness', 'web', 'cuttingFeedRate', 'pierceTime', 'appliedHourlyRate']}
+        isRateTable={true}
+        material={material}
+      />
+       </>
       );
     },
     enableSorting: false,

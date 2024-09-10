@@ -15,11 +15,9 @@ import { fetchUserData } from "@/services/auth";
 function App() {
   const auth = getAuth();
   const user = useSelector((state: RootState) => state.auth);
-  console.log("User from state:", user);
   const dispatch = useDispatch();
 
   useEffect(() => {
-    console.log("onAuthStateChanged listener triggered");
     const unsubscribe = onAuthStateChanged(auth, async (user: User | null) => {
       if (user) {
         if (!user.emailVerified) {

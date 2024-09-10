@@ -4,7 +4,7 @@ import FooterAdmin from "@/components/footer/fouter-admin";
 import NavbarAdmin from "@/components/nav/navbar-admin";
 import { useNavigate } from "react-router-dom";
 import CreateNewQuoteSteper from "@/components/quotes/create-quote/steper";
-import QuoteSettings from "@/components/quotes/create-quote/quote-settings";
+import Part from "@/components/quotes/create-quote/part/part";
 import AddOtherParts from "@/components/quotes/create-quote/add-other-parts";
 import HorizontalDevider from "@/assets/quotes/horizontal-devider.svg";
 import { Button } from "@/components/_ui/button";
@@ -24,9 +24,9 @@ const AddParts: FunctionComponent = () => {
           <FileUpload />
           <AddOtherParts />
           <img src={HorizontalDevider} className="px-6" />
-          <QuoteSettings />
+          <Part />
         </div>
-        <div className="m-auto flex w-[90%] flex-row space-x-4 py-8">
+        <div className="m-auto flex w-full flex-row justify-end space-x-4 py-8 pr-5">
           <Button variant="secondary" className="rounded-full border bg-white">
             Cancel
           </Button>

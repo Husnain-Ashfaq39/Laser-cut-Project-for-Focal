@@ -1,9 +1,11 @@
 import { configureStore } from "@reduxjs/toolkit";
 import authReducer from "./slices/auth-slice";
+import quotePartsReducer from "./slices/quote-parts-slice";
 
 export const store = configureStore({
   reducer: {
     auth: authReducer,
+    quoteParts: quotePartsReducer,
   },
 });
 
