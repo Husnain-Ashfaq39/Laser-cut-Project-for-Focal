@@ -52,7 +52,7 @@ const Home = () => {
         </button>
       </div>
       <div className="m-auto w-[65%]">
-        <h1 className="text-center font-cinzel text-5xl">
+        <h1 className="font-cinzel text-center text-5xl">
           We believe in investing in teams, relationships and equipment to
           reliably provide value to projects.
         </h1>
@@ -61,7 +61,6 @@ const Home = () => {
         <img src={ImgAboutUs} className="h-[30rem] w-full object-contain" />
       </div>
       <div className="mb-10 flex justify-center">
-
         {/* <SignUpDialog
           isDialogOpen={isSignUpDialogOpen}
           toggleLoginDialog={toggleLoginDialog}
@@ -69,7 +68,12 @@ const Home = () => {
         >
         </SignUpDialog> */}
         <div>
-          <button className="mt-5 flex items-center justify-center rounded-full bg-black px-6 py-2 md:px-10 md:py-3" onClick={()=>{navigate("/start-quoting")}}>
+          <button
+            className="mt-5 flex items-center justify-center rounded-full bg-black px-6 py-2 md:px-10 md:py-3"
+            onClick={() => {
+              navigate("/start-quoting");
+            }}
+          >
             <p className="font-secondary font-extralight text-white md:text-base">
               GET YOUR QUOTES NOW
             </p>

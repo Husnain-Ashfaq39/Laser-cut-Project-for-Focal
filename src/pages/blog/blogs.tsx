@@ -1,94 +1,46 @@
 import Footer from "@/components/footer/footer";
 import Navbar from "@/components/nav/navbar";
-
-// images
-import BlogImage1 from "@/assets/blogs-images/blog-img-1.png";
-import BlogImage2 from "@/assets/blogs-images/blog-img-2.png";
-import BlogImage3 from "@/assets/blogs-images/blog-img-3.png";
-import BlogImage4 from "@/assets/blogs-images/blog-img-4.png";
-import BlogImage5 from "@/assets/blogs-images/blog-img-5.png";
-import BlogImage6 from "@/assets/blogs-images/blog-img-6.png";
-
 import BlogCard from "@/components/blog-card";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { LoginDialog } from "@/components/dialogs/login-dialog";
 import { SignUpDialog } from "@/components/dialogs/sign-up-dialog";
+import { getBlogsFromDb } from "@/services/blogs"; // Assuming you have this service for fetching blogs
 
-const blogsContent = [
-  {
-    id: 1,
-    imgURL: BlogImage1,
-    title: "Luxury metal fabrication on high end architectural homes.",
-    author: "George Hayden",
-    date: "9/07/24",
-    description:
-      "Focal recently had the pleasure of working on a beautiful high-end architectural project in Queenstown. Have a read to find out about the project and see images.",
-    link: "/",
-  },
-  {
-    id: 2,
-    imgURL: BlogImage2,
-    title: "Patagonia- high end commercial shop fit-out.",
-    author: "George Hayden",
-    date: "5/07/24",
-    description:
-      "A write up on a recently completed shop fit-out for Patagonia clothing company.",
-    link: "/",
-  },
-  {
-    id: 3,
-    imgURL: BlogImage3,
-    title: "3D modelling for decorative and bespoke metal work.",
-    author: "George Hayden",
-    date: "22/05/24",
-    description:
-      "In-house 3D modelling by Focal for all decorative and bespoke metal products.",
-    link: "/",
-  },
-  {
-    id: 4,
-    imgURL: BlogImage4,
-    title: "CNC Profile cutting",
-    author: " George Hayden",
-    date: "16/05/24",
-    description: "Our current in-house CNC profile cutting capabilities.",
-    link: "/",
-  },
-  {
-    id: 5,
-    imgURL: BlogImage5,
-    title: "Focal’s metal options.",
-    author: "George Hayden",
-    date: "14/05/24",
-    description:
-      "A write up on the differences in materials available from Focal.",
-    link: "/",
-  },
-  {
-    id: 6,
-    imgURL: BlogImage6,
-    title: "Antique and patina finishing on metals",
-    author: "George Hayden",
-    date: "9/04/24",
-    description:
-      "A quick write up on how we antique finish or force rust some of our products.",
-    link: "/",
-  },
-];
 
 const Blogs = () => {
+  const [blogsContent, setBlogsContent] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true); // For handling loading state
   const [isSignUpDialogOpen, setIsSignUpDialogOpen] = useState(false);
   const [isLoginDialogOpen, setIsLoginDialogOpen] = useState(false);
+  const [feedbackMessage, setFeedbackMessage] = useState<string | null>(null); // For feedback to the user
+
+  // Fetch blogs from the database on component mount
+  useEffect(() => {
+    const fetchBlogs = async () => {
+      setIsLoading(true);
+      try {
+        const blogs = await getBlogsFromDb();
+        setBlogsContent(blogs);
+      } catch (error) {
+        console.error("Error fetching blogs: ", error);
+        setFeedbackMessage("Error fetching blogs from the database.");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchBlogs();
+  }, []);
 
   const toggleSignUpDialog = (isOpen: boolean) => {
     setIsSignUpDialogOpen(isOpen);
     if (isOpen) setIsLoginDialogOpen(false);
   };
-
   const toggleLoginDialog = (isOpen: boolean) => {
     setIsLoginDialogOpen(isOpen);
     if (isOpen) setIsSignUpDialogOpen(false);
   };
+
   return (
     <div className="m-auto flex w-[90%] flex-col items-center pt-16">
       <Navbar />
@@ -99,16 +51,22 @@ const Blogs = () => {
           design & <span className="font-secondary font-medium">TRENDS</span>
         </h1>
       </div>
+      {feedbackMessage && (
+        <p className={`mt-4 ${feedbackMessage.startsWith("Error") ? "text-red-500" : "text-green-500"}`}>
+          {feedbackMessage}
+        </p>
+      )}
+
       <div className="grid w-[110%] grid-cols-1 gap-4 pb-10 md:grid-cols-3">
         {blogsContent.map((blog) => (
           <div className="p-4" key={blog.id}>
             <BlogCard
-              id={blog.id}
+              id={blog.firestoreId}
               title={blog.title}
               date={blog.date}
               author={blog.author}
               description={blog.description}
-              imgURL={blog.imgURL}
+              imgURL={blog.previewImage}
             />
           </div>
         ))}

@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Menu, MenuItem } from "./navbar-menu";
 import { NavLink } from "react-router-dom";
-import { cn } from "@/lib/utils";
+import { cn } from "@/utils/utils";
 
 import focalLogoI from "@/assets/focal-logo.png";
 import focalLogoII from "@/assets/logo/FOCAL_Brand_Mark_Stone_Transperant.jpg";
@@ -139,8 +139,9 @@ const Navbar = ({ className }: { className?: string }) => {
                     : "text-white"
                 }`}
               >
-                Hi, {truncateName(user.firstName, 10)}{" "}
-                {truncateName(user.lastName, 10)}
+                Hi,{" "}
+                {user.firstName ? truncateName(user.firstName, 10) : "Guest"}{" "}
+                {user.lastName ? truncateName(user.lastName, 10) : ""}
               </span>
               <button
                 onClick={handleLogout}

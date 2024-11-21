@@ -1,4 +1,4 @@
-import { cn } from "@/lib/utils";
+import { cn } from "@/utils/utils";
 import React, { useEffect, useState } from "react";
 import img1 from "@/assets/drawer-images/1.png";
 import img2 from "@/assets/drawer-images/2.png";

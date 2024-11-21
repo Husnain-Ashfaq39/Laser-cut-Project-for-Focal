@@ -14,16 +14,18 @@ interface ConfirmationDialogProps {
   open: boolean;
   onConfirm: () => void;
   onCancel: () => void;
+  title?:string,
+  desc?:string,
 }
 
-const ConfirmationDialog: React.FC<ConfirmationDialogProps> = ({ open, onConfirm, onCancel }) => {
+const ConfirmationDialog: React.FC<ConfirmationDialogProps> = ({ open, onConfirm, onCancel ,title='Are you absolutely sure?',desc=' This action cannot be undone. This will permanently delete the data' }) => {
   return (
     <AlertDialog open={open} onOpenChange={onCancel}>
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+          <AlertDialogTitle>{title}</AlertDialogTitle>
           <AlertDialogDescription>
-            This action cannot be undone. This will permanently delete the data 
+           {desc}
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>

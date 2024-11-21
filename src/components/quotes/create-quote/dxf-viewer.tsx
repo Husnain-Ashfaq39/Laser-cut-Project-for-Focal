@@ -1,107 +1,66 @@
-import React, { useEffect, useRef, useState } from 'react';
-import { DxfViewer as DxfViewerLib } from 'dxf-viewer';
-import * as THREE from 'three';
-import { DxfViewerWorker } from '@/services/dxf-worker';
+import { useDxfViewer } from "@/hooks/useDxfViewer";
+import React, { useEffect, useState } from "react";
 
-const DxfViewer = ({ dxfUrl, fonts, options }) => {
-    const viewerRef = useRef(null);
-    const [isLoading, setIsLoading] = useState(false);
-    const [progress, setProgress] = useState(null);
-    const [progressText, setProgressText] = useState(null);
-    const [error, setError] = useState(null);
-    const [viewer, setViewer] = useState(null);
+interface DxfViewerComponentProps {
+  dxfUrl: string;
+  fonts?: string[];
+  options?: any;
+  width: number;
+  height: number;
+}
 
-    useEffect(() => {
-        if (viewerRef.current && !viewer) {
-            const newViewer = new DxfViewerLib(viewerRef.current, options);
-            setViewer(newViewer);
-        }
-    }, [viewerRef.current]);
+const DxfViewerComponent: React.FC<DxfViewerComponentProps> = ({
+  dxfUrl,
+  fonts = [],
+  options = {},
+  width,
+  height,
+}) => {
+  const { loadDxf, renderToCanvas, isLoaded, containerRef, initializeViewer } =
+    useDxfViewer(options);
 
-    useEffect(() => {
-        if (viewer && dxfUrl) {
-            loadDxf(dxfUrl);
-        } else if (viewer) {
-            viewer.Clear();
-            setError(null);
-            setIsLoading(false);
-            setProgress(null);
-        }
-    }, [dxfUrl, viewer]);
+  const [error, setError] = useState<string | null>(null);
+  const [isInitialized, setIsInitialized] = useState(false);
 
-    const loadDxf = async (url) => {
-        setIsLoading(true);
-        setError(null);
-
-        try {
-            await viewer.Load({
-                url,
-                fonts,
-                progressCbk: onProgress,
-                workerFactory: DxfViewerWorker
-            });
-        } catch (error) {
-            console.warn(error);
-            setError(error.toString());
-        } finally {
-            setIsLoading(false);
-            setProgressText(null);
-            setProgress(null);
-        }
-    };
-
-    const onProgress = (phase, size, totalSize) => {
-        switch (phase) {
-            case 'font':
-                setProgressText('Fetching fonts...');
-                break;
-            case 'fetch':
-                setProgressText('Fetching file...');
-                break;
-            case 'parse':
-                setProgressText('Parsing file...');
-                break;
-            case 'prepare':
-                setProgressText('Preparing rendering data...');
-                break;
-            default:
-                break;
-        }
-        if (totalSize === null) {
-            setProgress(-1);
-        } else {
-            setProgress(size / totalSize);
-        }
-    };
-
-    return (
-        <div className="canvasContainer" ref={viewerRef} style={{ width: '100%', height: '100%', pointerEvents: 'none' }}>
-            {isLoading && <div>Loading...</div>}
-            {progress !== null && (
-                <div className="progress">
-                    <progress max="100" value={progress * 100}></progress>
-                    {progressText && <div className="progressText">{progressText}</div>}
-                </div>
-            )}
-            {error && (
-                <div className="error" title={error}>
-                    <span>Error occurred: {error}</span>
-                </div>
-            )}
-        </div>
-    );
-};
-
-DxfViewer.defaultProps = {
-    fonts: [],
-    options: {
-        clearColor: new THREE.Color('#fff'),
-        autoResize: true,
-        colorCorrection: true,
-        sceneOptions: {
-            wireframeMesh: true,
-        }
+  // Initialize the viewer only once
+  useEffect(() => {
+    if (!isInitialized) {
+      initializeViewer();
+      setIsInitialized(true);
     }
+  }, [initializeViewer, isInitialized]);
+
+  // Load the DXF file whenever the URL changes
+  useEffect(() => {
+    if (dxfUrl && isInitialized) {
+      loadDxf(dxfUrl, fonts)
+        .then(() => {
+          setError(null); // Clear any previous errors
+        })
+        .catch((err) => {
+          console.error("Failed to load DXF:", err);
+          setError(`Error loading DXF: ${err.message || err}`);
+        });
+    }
+  }, [dxfUrl, fonts, loadDxf, isInitialized]);
+
+  // Render the DXF to canvas once it's loaded
+  useEffect(() => {
+    if (isLoaded) {
+      renderToCanvas();
+    }
+  }, [isLoaded, renderToCanvas]);
+
+  return (
+    <div ref={containerRef} className="flex h-full w-full flex-col">
+      {!isLoaded && !error && (
+        <div className="mt-5 items-center justify-center text-center">
+          Loading...
+        </div>
+      )}
+      {error && <div className="error">{error}</div>}
+    </div>
+  );
 };
 
-export default DxfViewer;
+export default DxfViewerComponent;

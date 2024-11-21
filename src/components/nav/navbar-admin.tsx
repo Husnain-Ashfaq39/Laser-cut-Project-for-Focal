@@ -1,10 +1,11 @@
-import React, { useState, useEffect } from "react";
-import { Menu} from "lucide-react";
+import { useState, useEffect } from "react";
+import { Menu } from "lucide-react";
 import FocalLogo from "@/assets/focal-logo.png";
-import { useNavigate } from 'react-router-dom';
-import { useSelector } from 'react-redux';
+import { useNavigate } from "react-router-dom";
+import { useSelector } from "react-redux";
 import { RootState } from "@/redux/store";
-import Sidebar from '@/components/sidebar';
+import Sidebar from "@/components/sidebar";
+import NotificationIcon from "@/components/notification_icon";
 
 const NavbarAdmin = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -17,29 +18,29 @@ const NavbarAdmin = () => {
   };
 
   useEffect(() => {
-    if (user.profileImage) {
-      setCachedProfileImage(user.profileImage);
-    } else {
-      setCachedProfileImage("https://via.placeholder.com/150");
-    }
+    setCachedProfileImage(
+      user.profileImage || "/profile.jpg",
+    );
   }, [user.profileImage]);
 
   return (
     <div>
-      <div className="flex h-14 w-full flex-row items-center justify-between bg-white py-2 m-auto px-[5%]">
+      <div className="m-auto flex h-14 w-full flex-row items-center justify-between bg-white px-[5%] py-2">
         <div className="flex flex-row items-center space-x-5">
           <Menu size={30} className="cursor-pointer" onClick={toggleSidebar} />
-          <img src={FocalLogo} onClick={() => { navigate("/") }} className="h-8 w-8 object-fill cursor-pointer" />
+          <img
+            src={FocalLogo}
+            onClick={() => navigate("/")}
+            className="h-8 w-8 cursor-pointer object-fill"
+          />
         </div>
         <div className="flex flex-row items-center space-x-5">
-         
+          <NotificationIcon />
           <img
             src={cachedProfileImage}
             alt="User profile"
-            className="cursor-pointer w-10 h-10 rounded-full"
-            onClick={() => {
-              navigate("/profile-details");
-            }}
+            className="h-10 w-10 cursor-pointer rounded-full"
+            onClick={() => navigate("/profile-details")}
           />
         </div>
       </div>

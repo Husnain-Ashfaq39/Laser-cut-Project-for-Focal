@@ -1,10 +1,11 @@
 import * as React from "react";
+import { useEffect, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import { v4 as uuidv4 } from "uuid";
 import { Button } from "@/components/_ui/button";
 import NavbarAdmin from "@/components/nav/navbar-admin";
-import FooterAdmin from "@/components/footer/fouter-admin";
+import FooterAdmin from "@/components/footer/footer-admin";
 import { Input } from "@/components/_ui/input";
 import {
   Dialog,
@@ -36,20 +37,15 @@ type Shape = {
   svgPreview: string;
 };
 
-const AddFromParametricLibrary: React.FunctionComponent = () => {
+const QuickPart: React.FunctionComponent = () => {
   const dispatch = useDispatch();
   const location = useLocation();
   const navigate = useNavigate();
   const { shape } = (location.state as { shape: Shape }) || {};
+  const [partName, setPartName] = useState<string>(shape?.name || "");
 
-  // Redirect to parametric library if shape is undefined
-  React.useEffect(() => {
-    if (!shape) {
-      navigate("/quotes/new-quote/parametric-library");
-    }
-  }, [shape, navigate]);
-
-  const [params, setParams] = React.useState<{ [key: string]: number }>(
+  // Initialize state for parameters
+  const [params, setParams] = useState<{ [key: string]: number }>(
     shape?.parameters.reduce(
       (acc, param) => {
         acc[param.shortName] = param.default;
@@ -59,7 +55,17 @@ const AddFromParametricLibrary: React.FunctionComponent = () => {
     ) || {},
   );
 
-  const [partName, setPartName] = React.useState<string>(shape?.name || "");
+  // Scroll to top when component mounts or shape changes
+  useEffect(() => {
+    window.scrollTo(0, 0); // Scroll to the top of the page
+  }, [shape]);
+
+  // Redirect to parametric library if shape is undefined
+  useEffect(() => {
+    if (!shape) {
+      navigate("/quotes/new-quote/parametric-library");
+    }
+  }, [shape, navigate]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -221,7 +227,11 @@ const AddFromParametricLibrary: React.FunctionComponent = () => {
         id: uuidv4(),
         file: svgFile,
         fileType: "svg",
-        name: fileName, // Add the partName as file name
+        name: fileName,
+        isValid: false,
+        material: undefined,
+        cuttingTechnology: undefined,
+        quantity: 1,
       }),
     );
 
@@ -230,7 +240,7 @@ const AddFromParametricLibrary: React.FunctionComponent = () => {
       variant: "default",
       title: `${fileName} Added Successfully!`,
       description: "You have successfully added your part.",
-      duration: 5000,
+      duration: 2000,
     });
   };
 
@@ -282,27 +292,6 @@ const AddFromParametricLibrary: React.FunctionComponent = () => {
                   Go back to shape selection
                 </Link>
               </div>
-              <div className="mb-10">
-                <Dialog>
-                  <DialogTrigger asChild>
-                    <Button
-                      variant="outline"
-                      className="rounded-full font-bold"
-                    >
-                      Preview
-                    </Button>
-                  </DialogTrigger>
-                  <DialogContent>
-                    <div
-                      className="flex items-center justify-center"
-                      dangerouslySetInnerHTML={{
-                        __html: shape?.svgPreview || "",
-                      }}
-                    ></div>
-                    <DialogClose />
-                  </DialogContent>
-                </Dialog>
-              </div>
               <div className="mb-8">
                 <label className="text-md mb-2 block font-semibold">
                   Enter the Part Name
@@ -339,15 +328,37 @@ const AddFromParametricLibrary: React.FunctionComponent = () => {
                   Reset Measurements
                 </Button>
               </div>
+
+              {/* Inline SVG Preview and Click to Show Dialog */}
+              <Dialog>
+                <DialogTrigger asChild>
+                  <div
+                    className="mb-8 cursor-pointer"
+                    dangerouslySetInnerHTML={{
+                      __html: shape?.svgPreview || "",
+                    }}
+                  ></div>
+                </DialogTrigger>
+                <DialogContent>
+                  <div
+                    className="flex items-center justify-center"
+                    dangerouslySetInnerHTML={{
+                      __html: shape?.svgPreview || "",
+                    }}
+                  ></div>
+                  <DialogClose />
+                </DialogContent>
+              </Dialog>
             </div>
-            <div className="w-full md:w-8/12">
+
+            <div className="flex h-screen w-full flex-col md:w-8/12">
               <div className="mb-4">
                 <b className="mb-2 block text-center text-lg font-semibold">
                   {shape?.name}
                 </b>
               </div>
               <div
-                className="mb-6 flex h-screen items-center justify-center"
+                className="flex flex-1 items-center justify-center"
                 dangerouslySetInnerHTML={{
                   __html: svgContent,
                 }}
@@ -381,4 +392,4 @@ const AddFromParametricLibrary: React.FunctionComponent = () => {
   );
 };
 
-export default AddFromParametricLibrary;
+export default QuickPart;

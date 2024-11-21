@@ -1,12 +1,33 @@
 import Footer from "@/components/footer/footer";
 import Navbar from "@/components/nav/navbar";
 import PortfolioCard from "@/components/portfolio-card";
-import portfolios from "@/data/portfolio";
-import { Outlet, Link } from "react-router-dom";
-import { scrollToTop } from "@/utils/helpers";
+import { Outlet} from "react-router-dom";
 import { ContactUsDialog } from "@/components/dialogs/contact-us-dialog";
+import { useEffect, useState } from "react";
+import {
+  getPortfolioFromDb,
+  // pushPortfolioItemsToDb,
+} from "@/services/portfolio";
 
 const Portfolio = () => {
+  const handlePushingToDb = () => {
+    // pushPortfolioItemsToDb();
+  };
+
+  const [portfolios, setPortfolios] = useState([]);
+  useEffect(() => {
+    const fetchServices = async () => {
+      try {
+        const portfolioDb = await getPortfolioFromDb();
+        setPortfolios(portfolioDb);
+        console.log(portfolioDb);
+      } catch (error) {
+        console.log(error);
+      }
+    };
+    fetchServices();
+  }, []);
+
   return (
     <div className="m-auto w-[90%] pt-16">
       <Navbar />
@@ -19,17 +40,16 @@ const Portfolio = () => {
           <span className="font-secondary font-medium">PROJECTS</span>
         </h1>
       </div>
+      {/* <Button onClick={handlePushingToDb}>Push portfolio to db</Button> */}
       <div className="grid grid-cols-1 gap-4 pb-10 md:grid-cols-2">
         {portfolios.map((portfolio) => (
           <div className="p-4" key={portfolio.title}>
-            <Link to={`/portfolio/${portfolio.id}`} onClick={scrollToTop}>
-              <PortfolioCard
-                id={portfolio.id}
-                title={portfolio.title}
-                description={portfolio.description}
-                imgURL={portfolio.imgURL}
-              />
-            </Link>
+            <PortfolioCard
+              id={portfolio.firestoreId}
+              title={portfolio.title}
+              description={portfolio.description}
+              imgURL={portfolio.imgURL}
+            />
           </div>
         ))}
       </div>

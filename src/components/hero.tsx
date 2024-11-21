@@ -1,25 +1,22 @@
+import { useState } from "react";
 import heroImage from "@/assets/hero-img-1.png";
-// import { SignUpDialog } from "./dialogs/sign-up-dialog";
-// import { useState } from "react";
-// import { LoginDialog } from "./dialogs/login-dialog";
+import { SignUpDialog } from "@/components/dialogs/sign-up-dialog";
+import { LoginDialog } from "@/components/dialogs/login-dialog";
 
-import { useNavigate } from "react-router-dom";
+const Hero = () => {
+  const [isSignUpDialogOpen, setIsSignUpDialogOpen] = useState(false);
+  const [isLoginDialogOpen, setIsLoginDialogOpen] = useState(false);
 
-// should contain the logo, nav bar, the search bar, the
-const hero = () => {
-  // const [isSignUpDialogOpen, setIsSignUpDialogOpen] = useState(false);
-  // const [isLoginDialogOpen, setIsLoginDialogOpen] = useState(false);
-  const navigate=useNavigate();
+  const toggleSignUpDialog = (isOpen: boolean) => {
+    setIsSignUpDialogOpen(isOpen);
+    if (isOpen) setIsLoginDialogOpen(false);
+  };
 
-  // const toggleSignUpDialog = (isOpen: boolean) => {
-  //   setIsSignUpDialogOpen(isOpen);
-  //   if (isOpen) setIsLoginDialogOpen(false);
-  // };
+  const toggleLoginDialog = (isOpen: boolean) => {
+    setIsLoginDialogOpen(isOpen);
+    if (isOpen) setIsSignUpDialogOpen(false);
+  };
 
-  // const toggleLoginDialog = (isOpen: boolean) => {
-  //   setIsLoginDialogOpen(isOpen);
-  //   if (isOpen) setIsSignUpDialogOpen(false);
-  // };
   return (
     <div className="flex min-h-screen flex-col">
       <img
@@ -37,28 +34,34 @@ const hero = () => {
         <p className="my-8 font-secondary text-base text-white sm:max-w-2xl md:text-xl">
           For projects that demand excellence, <br /> trust the experts.
         </p>
-        {/* <LoginDialog
-        navgateto={true}
-          isDialogOpen={isLoginDialogOpen}
-          toggleSignUpDialog={toggleSignUpDialog}
-          toggleDialog={toggleLoginDialog}
-        />
-        <SignUpDialog
-          isDialogOpen={isSignUpDialogOpen}
-          toggleLoginDialog={toggleLoginDialog}
-          toggleDialog={toggleSignUpDialog}
-        >
-        </SignUpDialog> */}
-          <div>
-            <button className="mt-5 rounded-full bg-white px-6 py-2 md:px-10 md:py-3" onClick={()=>{navigate("/start-quoting")}}>
-              <h1 className="font-secondary text-base font-normal text-black md:text-xl">
-                GET YOUR QUOTES NOW
-              </h1>
-            </button>
-          </div>
+        <div>
+          <button
+            className="mt-5 rounded-full bg-white px-6 py-2 md:px-10 md:py-3"
+            onClick={() => toggleLoginDialog(true)} // Opens the LoginDialog
+          >
+            <h1 className="font-secondary text-base font-normal text-black md:text-xl">
+              GET YOUR QUOTES NOW
+            </h1>
+          </button>
+        </div>
       </div>
+
+      {/* Sign Up Dialog */}
+      <SignUpDialog
+        isDialogOpen={isSignUpDialogOpen}
+        toggleLoginDialog={toggleLoginDialog}
+        toggleDialog={toggleSignUpDialog}
+      />
+
+      {/* Login Dialog */}
+      <LoginDialog
+        navgateto={true}
+        isDialogOpen={isLoginDialogOpen}
+        toggleSignUpDialog={toggleSignUpDialog}
+        toggleDialog={toggleLoginDialog}
+      />
     </div>
   );
 };
 
-export default hero;
+export default Hero;

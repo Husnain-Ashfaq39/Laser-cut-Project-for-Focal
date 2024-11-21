@@ -1,6 +1,5 @@
 import Footer from "@/components/footer/footer";
 import Navbar from "@/components/nav/navbar";
-
 import Rectangle from "@/assets/rectangle.png";
 import SmallClock from "@/assets/small-clock.png";
 import SocialsImageII from "@/assets/socials-2.png";
@@ -8,13 +7,51 @@ import { Input } from "@/components/_ui/input";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { scrollToTop } from "@/utils/helpers";
 import { ChevronLeft } from "lucide-react";
-import { blogsContent } from "@/data/blogs";
+import { useState, useEffect } from "react";
+import { getBlogById } from "@/services/blogs";
 
 const SingleBlog: React.FC = () => {
   const { blogId } = useParams<{ blogId?: string }>();
-  let id: number = blogId ? parseInt(blogId, 10) : -1;
-  id--;
+  const [blog, setBlog] = useState<any>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const fetchBlog = async () => {
+      if (blogId) {
+        setIsLoading(true);
+        try {
+          const fetchedBlog = await getBlogById(blogId);
+          if (fetchedBlog) {
+            setBlog(fetchedBlog);
+          } else {
+            setError("Blog not found.");
+          }
+        } catch (err) {
+          console.error("Error fetching blog: ", err);
+          setError("Failed to fetch blog.");
+        } finally {
+          setIsLoading(false);
+        }
+      }
+    };
+
+    fetchBlog();
+  }, [blogId]);
+
+  if (isLoading) {
+    return;
+    <></>;
+  }
+
+  if (error) {
+    return <p>{error}</p>;
+  }
+
+  if (!blog) {
+    return <p>No blog available.</p>;
+  }
 
   return (
     <div className="m-auto flex w-[100%] flex-col">
@@ -23,8 +60,8 @@ const SingleBlog: React.FC = () => {
         <div
           className="absolute inset-0 bg-cover bg-center"
           style={{
-            backgroundImage: `url(${blogsContent[id].backgroundImage})`,
-            filter: "brightness(0.7",
+            backgroundImage: `url(${blog.previewImage})`,
+            filter: "brightness(0.7)",
             zIndex: 0,
           }}
         ></div>
@@ -35,13 +72,13 @@ const SingleBlog: React.FC = () => {
           </Link>
 
           <h1 className="mx-5 mb-1 mt-24 w-[60%] font-secondary text-6xl capitalize">
-            {blogsContent[id].title}
+            {blog.title}
           </h1>
           <h2 className="mx-5 w-[60%] py-5 font-secondary text-xl">
-            {blogsContent[id].description}
+            {blog.description}
           </h2>
           <div className="mx-5 flex flex-row items-center font-light">
-            <p>{blogsContent[id].author}</p>
+            <p>{blog.author}</p>
             <img
               src={Rectangle}
               alt="rectangle"
@@ -52,13 +89,51 @@ const SingleBlog: React.FC = () => {
               alt="small-clock"
               className="h-[20px] w-[20px]"
             />
-            <p>{blogsContent[id].readTime} reads</p>
+            <p>{blog.readTime} reads</p>
           </div>
         </div>
       </div>
 
-      <div className="flex flex-row">
-        {blogsContent[id].content}
+      <div className="flex w-screen flex-row">
+        <div className="flex w-[70%] flex-col items-center space-y-4 bg-slate-50 px-10 pt-10">
+          {blog.content.map((item: any, index: number) => {
+            switch (item.type) {
+              case "title":
+                return (
+                  <h1
+                    key={index}
+                    className="w-full text-start font-primary text-xl text-gray-800"
+                  >
+                    {item.content}
+                  </h1>
+                );
+              case "paragraph":
+                return (
+                  <p
+                    key={index}
+                    className="my-2 text-start indent-4 font-secondary text-lg"
+                  >
+                    {item.content}
+                  </p>
+                );
+              case "image":
+                return (
+                  <>
+                    <img
+                      key={index}
+                      src={item.imgURL}
+                      className="h-[400px] w-[80%] rounded-3xl object-cover shadow-2xl"
+                    />
+                    <p className="text-lg italic text-gray-600">
+                      {item?.subtitle}
+                    </p>
+                  </>
+                );
+              default:
+                return null;
+            }
+          })}
+        </div>
         <div className="w-[30%] space-y-10 px-[5%]">
           <p className="pt-16 font-secondary text-xl">Follow Us</p>
           <img src={SocialsImageII} alt="socials" className="h-auto w-full" />

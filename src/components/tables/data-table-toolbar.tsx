@@ -1,21 +1,27 @@
-import { Cross2Icon } from "@radix-ui/react-icons"
-import { Table } from "@tanstack/react-table"
+import { Cross2Icon } from "@radix-ui/react-icons";
+import { Table } from "@tanstack/react-table";
+import { Button } from "@/components/_ui/button";
+import { Input } from "@/components/_ui/input";
+import { DataTableViewOptions } from "./data-table-view-options";
+import { DataTableFacetedFilter } from "./data-table-faceted-filter";
+import { ComponentType } from "react";
 
-import { Button } from "@/components/_ui/button"
-import { Input } from "@/components/_ui/input"
-import { DataTableViewOptions } from "./data-table-view-options"
-
-import { priorities, statuses } from "@/data/quotes/data"
-import { DataTableFacetedFilter } from "./data-table-faceted-filter"
+interface StatusOption {
+  value: string;
+  label: string;
+  icon: ComponentType<{ className?: string }>;
+}
 
 interface DataTableToolbarProps<TData> {
-  table: Table<TData>
+  table: Table<TData>;
+  statuses: StatusOption[]; // Use the correct StatusOption type
 }
 
 export function DataTableToolbar<TData>({
   table,
+  statuses,
 }: DataTableToolbarProps<TData>) {
-  const isFiltered = table.getState().columnFilters.length > 0
+  const isFiltered = table.getState().columnFilters.length > 0;
 
   return (
     <div className="flex items-center justify-between">
@@ -35,13 +41,6 @@ export function DataTableToolbar<TData>({
             options={statuses}
           />
         )}
-        {table.getColumn("priority") && (
-          <DataTableFacetedFilter
-            column={table.getColumn("priority")}
-            title="Priority"
-            options={priorities}
-          />
-        )}
         {isFiltered && (
           <Button
             variant="ghost"
@@ -55,5 +54,5 @@ export function DataTableToolbar<TData>({
       </div>
       <DataTableViewOptions table={table} />
     </div>
-  )
+  );
 }

@@ -1,21 +1,50 @@
-import { useParams, Link, Navigate } from "react-router-dom";
+import { useParams, Link, useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
 import Footer from "@/components/footer/footer";
 import Navbar from "@/components/nav/navbar";
-import portfolios from "@/data/portfolio";
 import { ChevronLeft } from "lucide-react";
+import { getSinglePortfolioById } from "@/services/portfolio"; // Assuming you created this service
 
 const SinglePortfolio = () => {
   const { portfolioId } = useParams<{ portfolioId: string }>();
+  const [portfolio, setPortfolio] = useState<any>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const navigate = useNavigate();
 
-  // Ensure portfolioId is a string
-  if (!portfolioId) {
-    return <Navigate to="/404" />;
+  useEffect(() => {
+    const fetchPortfolio = async () => {
+      if (portfolioId) {
+        setIsLoading(true);
+        try {
+          const fetchedPortfolio = await getSinglePortfolioById(portfolioId);
+          if (fetchedPortfolio) {
+            setPortfolio(fetchedPortfolio);
+          } else {
+            setError("Portfolio not found.");
+          }
+        } catch (err) {
+          console.error("Error fetching portfolio: ", err);
+          setError("Failed to fetch portfolio.");
+        } finally {
+          setIsLoading(false);
+        }
+      }
+    };
+
+    fetchPortfolio();
+  }, [portfolioId]);
+
+  if (isLoading) {
+    return <></>;
   }
 
-  const portfolio = portfolios.find((p) => p.id === parseInt(portfolioId));
+  if (error) {
+    return <p>{error}</p>;
+  }
 
   if (!portfolio) {
-    return <Navigate to="/404" />;
+    return <p>No portfolio available.</p>;
   }
 
   return (
@@ -35,7 +64,43 @@ const SinglePortfolio = () => {
             alt={portfolio.title}
             className="h-[400px] w-full rounded-xl object-cover"
           />
-          {portfolio.detailedContent}
+          {portfolio.detailedContent.map((item: any, index: number) => {
+            switch (item.type) {
+              case "title":
+                return (
+                  <h1
+                    key={index}
+                    className="w-full text-start font-primary text-xl text-gray-800"
+                  >
+                    {item.content}
+                  </h1>
+                );
+              case "paragraph":
+                return (
+                  <p
+                    key={index}
+                    className="my-2 text-start indent-4 font-secondary text-lg"
+                  >
+                    {item.content}
+                  </p>
+                );
+              case "image":
+                return (
+                  <>
+                    <img
+                      key={index}
+                      src={item.imgURL}
+                      className="h-[400px] w-[80%] rounded-3xl object-cover shadow-2xl"
+                    />
+                    <p className="text-lg italic text-gray-600">
+                      {item?.subtitle}
+                    </p>
+                  </>
+                );
+              default:
+                return null;
+            }
+          })}
         </div>
       </div>
       <Footer />

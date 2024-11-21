@@ -1,10 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { Button } from "@/components/_ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogTrigger,
-} from "@/components/_ui/dialog";
+import { Dialog, DialogContent, DialogTrigger } from "@/components/_ui/dialog";
 import { Input } from "@/components/_ui/input";
 import { Label } from "@/components/_ui/label";
 import { useState, ChangeEvent, useEffect } from "react";
@@ -14,20 +10,16 @@ import FocalLogo from "@/assets/focal-logo-2.png";
 
 // Firebase imports
 import { auth, db, googleProvider } from "@/firebase.config";
-import {
-
-  signInWithEmailAndPassword,
-  signInWithPopup,
-} from "firebase/auth";
+import { signInWithEmailAndPassword, signInWithPopup } from "firebase/auth";
 
 // Toast imports
 import { useToast } from "@/components/_ui/toast/use-toast";
 import { ToastAction } from "@/components/_ui/toast/toast";
 
-
 import { useNavigate } from "react-router-dom";
 import { doc, getDoc } from "firebase/firestore";
-
+import { useSelector } from "react-redux";
+import { RootState } from "@/redux/store";
 
 interface LoginDialogProps {
   navgateto?: boolean;
@@ -47,28 +39,25 @@ export function LoginDialog({
   const [email, setEmail] = useState<string>("");
   const [password, setPassword] = useState<string>("");
   const { toast } = useToast();
+  const currentLoggedinUser = useSelector((state: RootState) => state.auth);
 
-  useEffect(() => {
-    const checkUserStatus = async () => {
-      auth.onAuthStateChanged((user) => {
-        if (user && user.emailVerified) {
-          if (navgateto) {
-            navigate("quotes/history");
-          }
-        }
-      });
-    };
-    if (navgateto) {
-      checkUserStatus();
-    }
-  }, [navgateto]);
+  const navigate = useNavigate();
 
   const handleEmailChange = (e: ChangeEvent<HTMLInputElement>) =>
     setEmail(e.target.value);
   const handlePasswordChange = (e: ChangeEvent<HTMLInputElement>) =>
     setPassword(e.target.value);
 
-  const navigate = useNavigate();
+  useEffect(() => {
+    // Redirect based on the user role once logged in
+    if (auth.currentUser && navgateto) {
+      if (currentLoggedinUser.role === "admin") {
+        navigate("/admin/quotes");
+      } else {
+        navigate("/quotes/history");
+      }
+    }
+  }, [currentLoggedinUser.role, navgateto]);
 
   const handleLogin = async () => {
     try {
@@ -89,8 +78,9 @@ export function LoginDialog({
         });
         return;
       }
-      // Check if the user exists in the Firestore Users collection
-      const userRef = doc(db, "Users", user.uid); // Reference to the user's document
+
+      // Fetch role from Firestore Users collection and update the Redux state accordingly
+      const userRef = doc(db, "Users", user.uid);
       const userSnap = await getDoc(userRef);
 
       if (!userSnap.exists()) {
@@ -103,7 +93,6 @@ export function LoginDialog({
         return;
       }
 
-
       toast({
         title: "Login Successful",
         description: "You have been logged in successfully.",
@@ -112,10 +101,8 @@ export function LoginDialog({
       toggleDialog(false);
       setEmail("");
       setPassword("");
-      // window.location.reload(); // Refresh the window
-      if (navgateto) {
-        navigate("/quotes/history");
-      }
+
+      // If navgateto is enabled, the useEffect hook will now handle navigation after role fetch
     } catch (error: any) {
       const errorMessage = error.message;
       if (errorMessage === "Firebase: Error (auth/user-not-found).") {
@@ -153,7 +140,7 @@ export function LoginDialog({
     try {
       const userCredential = await signInWithPopup(auth, googleProvider);
       const user = userCredential.user;
-      console.log("user after google auth", user);
+
       if (!user.emailVerified) {
         toast({
           variant: "destructive",
@@ -164,8 +151,8 @@ export function LoginDialog({
         });
         return;
       }
-      // Check if the user exists in the Firestore Users collection
-      const userRef = doc(db, "Users", user.uid); // Reference to the user's document
+
+      const userRef = doc(db, "Users", user.uid);
       const userSnap = await getDoc(userRef);
 
       if (!userSnap.exists()) {
@@ -177,15 +164,12 @@ export function LoginDialog({
         });
         return;
       }
+
       toggleDialog(false);
       toast({
         title: "Login Successful",
         description: "You have been logged in successfully.",
       });
-      // window.location.reload(); // Refresh the window
-      if (navgateto) {
-        navigate("/quote/history");
-      }
     } catch (error: any) {
       const errorMessage = error.message;
       toast({
@@ -200,7 +184,7 @@ export function LoginDialog({
     <>
       <Dialog open={isDialogOpen} onOpenChange={toggleDialog}>
         <DialogTrigger>{children}</DialogTrigger>
-        <DialogContent className="m-0  h-[100vh] overflow-y-auto p-0 lg:max-h-[80vh]">
+        <DialogContent className="m-0 h-[100vh] overflow-y-auto p-0 lg:max-h-[80vh]">
           <div className="flex w-full flex-col items-center sm:flex-row">
             <div className="hidden h-full w-full flex-shrink-0 sm:w-1/2 md:block">
               <img
@@ -208,7 +192,7 @@ export function LoginDialog({
                 className="w-full overflow-hidden rounded-l-3xl brightness-75 md:h-[80vh]"
                 alt="Dialog"
               />
-              <div className="absolute inset-0 w-56 flex flex-col pl-8 pt-6">
+              <div className="absolute inset-0 flex w-56 flex-col pl-8 pt-6">
                 <img
                   src={FocalLogo}
                   className="left-0 top-0 m-5 w-[100px] rounded-lg"

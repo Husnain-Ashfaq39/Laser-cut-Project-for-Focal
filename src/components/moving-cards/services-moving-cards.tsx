@@ -1,7 +1,7 @@
-import { cn } from "@/lib/utils";
+import { cn } from "@/utils/utils";
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import services from "@/data/services";
+import { servicesHomeContent } from "@/data/services-home";
 
 export const ServicesMovingCards = ({
   direction = "left",
@@ -84,13 +84,16 @@ export const ServicesMovingCards = ({
           pauseOnHover && "hover:[animation-play-state:paused]",
         )}
       >
-        {services.map((service) => (
+        {servicesHomeContent.map((service) => (
           <li
             key={service.id}
             className="relative mb-10 flex w-[300px] max-w-full flex-shrink-0 flex-col rounded-2xl border px-1 py-1 md:w-[350px]"
           >
             <div className="mb-4 h-[400px] w-full overflow-hidden rounded-xl border-4">
-              <img src={service.imgURL} className="h-full w-full object-cover" />
+              <img
+                src={service.imgURL}
+                className="h-full w-full object-cover"
+              />
             </div>
             <div className="flex h-1/5 flex-col items-start justify-between p-2">
               <p className="font-cinzel mb-2 text-2xl font-bold">

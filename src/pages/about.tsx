@@ -53,7 +53,6 @@ const About = () => {
           <img src={Image4} className="w-full object-cover" />
         </div>
       </div>
-      {/* <LayoutGridDemo /> */}
       <div>
         <ContactUsDialog>
           <button className="m-auto mt-5 flex min-w-12 items-center justify-center rounded-full bg-black px-6 py-2 md:px-10 md:py-3">

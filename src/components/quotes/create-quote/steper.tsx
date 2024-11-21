@@ -11,6 +11,11 @@ const stepsCustomer = [
     name: "Summary of Quote Price",
     isActive: false,
   },
+  {
+    step: 3,
+    name: "Checkout",
+    isActive: false,
+  },
 ];
 
 const stepsAdmin = [

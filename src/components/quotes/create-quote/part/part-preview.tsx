@@ -1,49 +1,96 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import QuotePlaceholderImage from "@/assets/quotes/quote-preview-placeholder.png";
-import DxfViewer from "../dxf-viewer";
+import DxfViewerComponent from "../dxf-viewer"; // Your updated DxfViewer component
+import * as THREE from "three";
+import downloadsvg from "@/assets/icons/downlaod.svg"; // Corrected import spelling
+import { RootState } from "@/redux/store";
+import { useSelector } from "react-redux";
 
 interface FilePreviewProps {
-  file: File;
+  file: Blob | File | string;
+  fileType: string; // Explicitly defining fileType as string
   dimensions: { width: number; height: number } | null;
-  onRemoveFile: () => void;
+  onRemovePart: () => void;
+  fileName: string; // Add a prop to handle the original file name
 }
 
 const FilePreview: React.FC<FilePreviewProps> = ({
   file,
+  fileType,
   dimensions,
-  onRemoveFile,
+  onRemovePart,
+  fileName, // Use the original file name
 }) => {
   const [fileUrl, setFileUrl] = useState<string>("");
+  const Quote = useSelector((state: RootState) => state.quoteParts);
 
   useEffect(() => {
-    // Generate the object URL when the file is provided
-    const url = URL.createObjectURL(file);
-    setFileUrl(url);
+    if (file instanceof File || file instanceof Blob) {
+      const url = URL.createObjectURL(file);
+      setFileUrl(url);
 
-    // Log file details to debug any issues
-    console.log("File URL generated:", url);
-    console.log("File type:", file.type);
-    console.log("File name:", file.name);
-
-    // Cleanup the object URL when the component unmounts
-    return () => {
-      console.log("Cleaning up file URL:", url);
-      URL.revokeObjectURL(url); // Use the "url" reference from this effect
-    };
+      return () => {
+        URL.revokeObjectURL(url); // Revoke URL when no longer needed
+      };
+    } else if (typeof file === "string") {
+      setFileUrl(file);
+    }
   }, [file]);
+
+  const options = useMemo(
+    () => ({
+      clearColor: new THREE.Color("#ffffff"),
+      autoResize: true,
+      sceneOptions: {
+        wireframeMesh: false,
+        showEdges: true,
+        boundingBox: false,
+        debug: true,
+      },
+    }),
+    [],
+  );
+
+  // Memoize the rendering of DxfViewerComponent to avoid re-renders
+  const DxfViewer = useMemo(() => {
+    if (fileType === "dxf" || file instanceof Blob) {
+      return (
+        <DxfViewerComponent
+          dxfUrl={fileUrl}
+          options={options}
+          fonts={[]}
+          width={250}
+          height={150}
+        />
+      );
+    }
+    return null;
+  }, [fileUrl, fileType, options]);
+
+  // Function to handle file download
+  const handleDownload = () => {
+    const link = document.createElement("a");
+    link.href = fileUrl;
+    if (fileType === "dxf") {
+      link.download = `${fileName}`; // Set the download name with the correct extension
+    } else {
+      link.download = `${fileName}.${fileType}`; // Set the download name with the correct extension
+    }
+    link.click();
+  };
 
   return (
     <div className="flex flex-col items-center">
       <div className="flex h-[180px] w-[300px] items-center justify-center rounded-xl bg-gray-100 p-2 shadow-md">
         <div className="flex h-full w-full items-center justify-center rounded-lg bg-white">
-          {file.type === "image/svg+xml" ? (
+          {file instanceof File && file.type === "image/svg+xml" ? (
             <img
               src={fileUrl}
-              alt="SVG Preview"
+              alt="Image Preview"
               className="h-full w-full object-contain"
             />
-          ) : file.name.endsWith(".dxf") ? (
-            <DxfViewer dxfUrl={fileUrl} />
+          ) : DxfViewer ? (
+            DxfViewer
           ) : (
             <img
               src={QuotePlaceholderImage}
@@ -56,15 +103,28 @@ const FilePreview: React.FC<FilePreviewProps> = ({
 
       {dimensions && (
         <p className="mt-2 text-sm font-medium text-gray-600">
-          {dimensions.width}mm x {dimensions.height}mm
+          {dimensions?.width}mm x {dimensions?.height}mm
         </p>
       )}
-      <button
-        className="mt-2 text-sm font-semibold text-blue-600 hover:underline"
-        onClick={onRemoveFile}
+
+     
+     
+        <button
+          className="mt-2 flex items-center text-sm font-semibold text-blue-600 hover:underline"
+          onClick={handleDownload}
+        >
+          <img src={downloadsvg} alt="Download Icon" className="mr-2 h-4 w-4" />
+          Download
+        </button>
+     
+
+      {Quote.status === 'draft' && (<button
+        className="mt-2 text-sm font-semibold text-red-600 hover:underline"
+        onClick={onRemovePart}
       >
         Remove Part
-      </button>
+      </button>)}
+
     </div>
   );
 };

@@ -15,9 +15,7 @@ const FeatureDescriptionWithImageToRight = ({
         <h1 className="font-cinzel text-5xl font-bold">{title}</h1>
         <p className="pr-10 font-secondary text-base text-gray-600">{description}</p>
       </div>
-      <div className="relative flex w-2/5 overflow-hidden rounded-lg border">
-        <img src={img} alt="placeholder" className="fill object-cover h-[650px] w-[600px]" />
-      </div>
+        <img src={img} alt="placeholder" className="relative flex w-2/5 overflow-hidden rounded-lg border object-cover h-[650px]" />
     </div>
   );
 };

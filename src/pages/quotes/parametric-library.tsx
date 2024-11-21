@@ -10,16 +10,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/_ui/select";
-import {
-  Pagination,
-  PaginationContent,
-  PaginationItem,
-  PaginationLink,
-  PaginationNext,
-  PaginationPrevious,
-} from "@/components/_ui/pagination";
 import NavbarAdmin from "@/components/nav/navbar-admin";
-import FooterAdmin from "@/components/footer/fouter-admin";
+import FooterAdmin from "@/components/footer/footer-admin";
 
 const ParametricLibrary: React.FunctionComponent = () => {
   const navigate = useNavigate();
@@ -31,8 +23,9 @@ const ParametricLibrary: React.FunctionComponent = () => {
   const [selectedCategory, setSelectedCategory] =
     React.useState(initialCategory);
   const [shapes, setShapes] = React.useState([]);
-  const [currentPage, setCurrentPage] = React.useState(1);
-  const shapesPerPage = 4;
+
+  // Ref to the scrollable container for shapes
+  const shapesContainerRef = React.useRef<HTMLDivElement>(null);
 
   React.useEffect(() => {
     handleCategoryChange(selectedCategory);
@@ -44,7 +37,11 @@ const ParametricLibrary: React.FunctionComponent = () => {
       (item) => item.mainCategory === category,
     );
     setShapes(selectedCategoryData ? selectedCategoryData.subCategories : []);
-    setCurrentPage(1);
+
+    // Scroll the shapes container to the top whenever a new category is selected
+    if (shapesContainerRef.current) {
+      shapesContainerRef.current.scrollTop = 0;
+    }
   };
 
   const handleShapeClick = (shape) => {
@@ -53,11 +50,6 @@ const ParametricLibrary: React.FunctionComponent = () => {
       state: { shape, selectedCategory },
     });
   };
-
-  const indexOfLastShape = currentPage * shapesPerPage;
-  const indexOfFirstShape = indexOfLastShape - shapesPerPage;
-  const currentShapes = shapes.slice(indexOfFirstShape, indexOfLastShape);
-  const totalPages = Math.ceil(shapes.length / shapesPerPage);
 
   return (
     <div className="flex min-h-screen w-full flex-col bg-gray-100 font-secondary">
@@ -113,12 +105,18 @@ const ParametricLibrary: React.FunctionComponent = () => {
                 </SelectContent>
               </Select>
             </div>
+
+            {/* Scrollable Shapes Container */}
             <div className="w-full md:w-3/5">
               <a className="mb-4 block text-lg font-semibold">
                 Please select your shape:
               </a>
-              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                {currentShapes.map((shape, index) => (
+              <div
+                className="grid grid-cols-1 gap-4 overflow-y-auto pt-5 md:grid-cols-2"
+                style={{ maxHeight: "500px" }} // Limit the height to make it scrollable
+                ref={shapesContainerRef} // Ref to the container
+              >
+                {shapes.map((shape, index) => (
                   <div
                     key={index}
                     onClick={() => handleShapeClick(shape)}
@@ -134,46 +132,6 @@ const ParametricLibrary: React.FunctionComponent = () => {
               </div>
             </div>
           </div>
-
-          {shapes.length > shapesPerPage && (
-            <div className="mt-6 flex w-full justify-end">
-              <div className="flex">
-                <Pagination>
-                  <PaginationContent>
-                    <PaginationItem>
-                      <PaginationPrevious
-                        href="#"
-                        onClick={() =>
-                          setCurrentPage((prev) => Math.max(prev - 1, 1))
-                        }
-                      />
-                    </PaginationItem>
-                    {[...Array(totalPages)].map((_, pageIndex) => (
-                      <PaginationItem key={pageIndex}>
-                        <PaginationLink
-                          href="#"
-                          isActive={pageIndex + 1 === currentPage}
-                          onClick={() => setCurrentPage(pageIndex + 1)}
-                        >
-                          {pageIndex + 1}
-                        </PaginationLink>
-                      </PaginationItem>
-                    ))}
-                    <PaginationItem>
-                      <PaginationNext
-                        href="#"
-                        onClick={() =>
-                          setCurrentPage((prev) =>
-                            Math.min(prev + 1, totalPages),
-                          )
-                        }
-                      />
-                    </PaginationItem>
-                  </PaginationContent>
-                </Pagination>
-              </div>
-            </div>
-          )}
         </section>
       </main>
       <FooterAdmin />

@@ -1,19 +1,20 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from "react";
 import { Dialog } from "@radix-ui/react-dialog";
-import { DialogContent, DialogDescription, DialogHeader, DialogTitle } from "./_ui/dialog";
-import { Button } from '@/components/_ui/button';
+import {
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "./_ui/dialog";
+import { Button } from "@/components/_ui/button";
 
 function EditModal2({ isOpen, onClose, rateTablesetting, onSave }) {
-  const [name, setName] = useState(rateTablesetting?.name || '');
-  const [baseHourlyRateMarkup, setBaseHourlyRateMarkup] = useState(rateTablesetting?.baseHourlyRateMarkup || 0);
-  const [etchingFeedRate, setEtchingFeedRate] = useState(rateTablesetting?.etchingFeedRate || 0);
+  const [name, setName] = useState(rateTablesetting?.name || "");
 
   useEffect(() => {
     if (!isOpen) {
       // Reset state when modal is closed
-      setName(rateTablesetting?.name || '');
-      setBaseHourlyRateMarkup(rateTablesetting?.baseHourlyRateMarkup || 0);
-      setEtchingFeedRate(rateTablesetting?.etchingFeedRate || 0);
+      setName(rateTablesetting?.name || "");
     }
   }, [isOpen, rateTablesetting]);
 
@@ -21,8 +22,6 @@ function EditModal2({ isOpen, onClose, rateTablesetting, onSave }) {
     const updatedRateTable = {
       ...rateTablesetting,
       name,
-      baseHourlyRateMarkup,
-      etchingFeedRate,
     };
     onSave(updatedRateTable);
     onClose();
@@ -32,39 +31,23 @@ function EditModal2({ isOpen, onClose, rateTablesetting, onSave }) {
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-lg w-full p-6 bg-white rounded-lg shadow-lg">
+      <DialogContent className="w-full max-w-lg rounded-lg bg-white p-6 shadow-lg">
         <DialogHeader>
-          <DialogTitle className="text-lg font-semibold">Edit RateTable Settings</DialogTitle>
+          <DialogTitle className="text-lg font-semibold">
+            Edit RateTable Settings
+          </DialogTitle>
           <DialogDescription className="text-sm text-gray-500"></DialogDescription>
         </DialogHeader>
         <div className="mt-4 space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700">Name</label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Name
+            </label>
             <input
               type="text"
-              className="w-full p-2 border rounded"
+              className="w-full rounded border p-2"
               value={name}
               onChange={(e) => setName(e.target.value)}
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700">Base Hourly Rate Markup</label>
-            <input
-              type="number"
-              className="w-full p-2 border rounded"
-              value={baseHourlyRateMarkup}
-              onChange={(e) => setBaseHourlyRateMarkup(e.target.value)}
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700">Etching Feed Rate</label>
-            <input
-              type="number"
-              className="w-full p-2 border rounded"
-              value={etchingFeedRate}
-              onChange={(e) => setEtchingFeedRate(e.target.value)}
             />
           </div>
 
